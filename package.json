@@ -1,0 +1,27 @@
+{
+  "name": "lurker",
+  "version": "0.0.0",
+  "description": "Workflow analytics.",
+  "scripts": {
+    "test": "node --harmony gulpfile.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jagoda/lurker.git"
+  },
+  "author": "Jeff Jagoda <jeffrey.jagoda@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/jagoda/lurker/issues"
+  },
+  "homepage": "https://github.com/jagoda/lurker",
+  "devDependencies": {
+    "gulp": "^3.8.6",
+    "gulp-jshint": "^1.7.1",
+    "gulp-mocha": "^0.5.1",
+    "jshint-stylish": "^0.4.0"
+  },
+  "dependencies": {
+    "lodash": "^2.4.1"
+  }
+}
