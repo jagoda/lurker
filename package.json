@@ -3,7 +3,9 @@
   "version": "0.0.0",
   "description": "Workflow analytics.",
   "scripts": {
-    "test": "node --harmony gulpfile.js"
+    "coverage": "gulp coverage",
+    "start": "hapi -c lib/server.json -p lib/",
+    "test": "gulp"
   },
   "repository": {
     "type": "git",
@@ -16,12 +18,18 @@
   },
   "homepage": "https://github.com/jagoda/lurker",
   "devDependencies": {
+    "chai": "^1.9.1",
     "gulp": "^3.8.6",
     "gulp-jshint": "^1.7.1",
-    "gulp-mocha": "^0.5.1",
-    "jshint-stylish": "^0.4.0"
+    "gulp-lab": "git://github.com/jagoda/gulp-lab#fix-fail",
+    "jshint-stylish": "^0.4.0",
+    "lab": "^3.2.1",
+    "sinon": "^1.10.3"
   },
   "dependencies": {
-    "lodash": "^2.4.1"
+    "good": "^2.2.0",
+    "hapi": "^6.2.0",
+    "lodash": "^2.4.1",
+    "q": "^1.0.1"
   }
 }

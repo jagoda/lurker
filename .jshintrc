@@ -4,7 +4,7 @@
 	"curly"         : true,
 	"eqeqeq"        : true,
 	"es3"           : false,
-	"esnext"        : true,
+	"esnext"        : false,
 	"forin"         : false,
 	"globalstrict"  : true,
 	"immed"         : true,
