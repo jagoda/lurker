@@ -21,7 +21,7 @@
     "chai": "^1.9.1",
     "gulp": "^3.8.6",
     "gulp-jshint": "^1.7.1",
-    "gulp-lab": "git://github.com/jagoda/gulp-lab#fix-fail",
+    "gulp-lab": "0.0.7",
     "jshint-stylish": "^0.4.0",
     "lab": "^3.2.1",
     "sinon": "^1.10.3"
