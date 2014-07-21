@@ -1,7 +1,7 @@
 "use strict";
 var crypto = require("crypto");
+var github = require("../lib/github");
 var Hapi   = require("hapi");
-var hooks  = require("../lib/hooks");
 var Lab    = require("lab");
 var nock   = require("nock");
 var util   = require("util");
@@ -12,7 +12,7 @@ var describe = Lab.describe;
 var expect   = Lab.expect;
 var it       = Lab.test;
 
-describe("The hooks plugin", function () {
+describe("The github plugin", function () {
 	var DIGEST        = "sha1";
 	var DIGEST_FORMAT = "hex";
 	var SECRET        = "a secret";
@@ -21,7 +21,7 @@ describe("The hooks plugin", function () {
 	before(function (done) {
 		// Copy the plugin object so that configuration isn't propagated to
 		// other places.
-		var plugin = Object.create(hooks);
+		var plugin = Object.create(github);
 
 		nock.disableNetConnect();
 		plugin.options = { secret : SECRET };
@@ -36,14 +36,14 @@ describe("The hooks plugin", function () {
 	});
 
 	it("has a name", function (done) {
-		expect(hooks.register.attributes, "plugin name")
-		.to.have.property("name", "hooks");
+		expect(github.register.attributes, "plugin name")
+		.to.have.property("name", "github");
 
 		done();
 	});
 
 	it("has a version", function (done) {
-		expect(hooks.register.attributes, "plugin version")
+		expect(github.register.attributes, "plugin version")
 		.to.have.property("version");
 
 		done();
@@ -52,7 +52,7 @@ describe("The hooks plugin", function () {
 	it("requires a secret", function (done) {
 		var server = new Hapi.Server("localhost", 0);
 
-		server.pack.register(hooks, function (error) {
+		server.pack.register(github, function (error) {
 			expect(error, "no error").to.be.an.instanceOf(Error);
 
 			expect(error.message, "bad message")
@@ -63,6 +63,9 @@ describe("The hooks plugin", function () {
 	});
 
 	describe("receiving a github event", function () {
+		var CUBE_BASE      = "http://localhost:1080";
+		var EVENT_ENDPOINT = "/1.0/event/put";
+
 		function badChecksum (done, response) {
 			expect(response.statusCode, "bad status")
 			.to.equal(400);
@@ -83,6 +86,13 @@ describe("The hooks plugin", function () {
 				},
 				done
 			);
+		}
+
+		function sign (payload) {
+			var hmac = crypto.createHmac(DIGEST, SECRET);
+
+			hmac.update(payload);
+			return util.format("%s=%s", DIGEST, hmac.digest(DIGEST_FORMAT));
 		}
 
 		describe("with an invalid signature", function () {
@@ -108,20 +118,28 @@ describe("The hooks plugin", function () {
 		});
 
 		describe("with a valid signature", function () {
+			var cubeRequest;
 			var response;
-
-			function sign (payload) {
-				var hmac = crypto.createHmac(DIGEST, SECRET);
-
-				hmac.update(payload);
-				return util.format("%s=%s", DIGEST, hmac.digest(DIGEST_FORMAT));
-			}
 
 			before(function (done) {
 				var payload = JSON.stringify({ action : "opened" });
 
+				cubeRequest = nock(CUBE_BASE)
+				.post(
+					EVENT_ENDPOINT,
+					{
+						data : {
+							action : "opened"
+						},
+
+						type : "pull_request"
+					}
+				)
+				.reply(200);
+
 				githubEvent(
 					{
+						"x-github-event"  : "pull_request",
 						"x-hub-signature" : sign(payload)
 					},
 					payload,
@@ -132,8 +150,56 @@ describe("The hooks plugin", function () {
 				);
 			});
 
+			after(function (done) {
+				nock.cleanAll();
+				done();
+			});
+
 			it("responds with code 200", function (done) {
 				expect(response.statusCode, "bad status").to.equal(200);
+				done();
+			});
+
+			it("creates a new cube event", function (done) {
+				expect(cubeRequest.isDone(), "no cube request").to.be.true;
+
+				done();
+			});
+		});
+
+		describe("failing to create a cube event", function () {
+			var cubeRequest;
+			var response;
+
+			before(function (done) {
+				var payload = JSON.stringify({ head : "foo" });
+
+				cubeRequest = nock(CUBE_BASE)
+				.post(EVENT_ENDPOINT)
+				.reply(503);
+
+				githubEvent(
+					{
+						"x-github-event"  : "push",
+						"x-hub-signature" : sign(payload)
+					},
+					payload,
+					function (result) {
+						response = result;
+						done();
+					}
+				);
+			});
+
+			after(function (done) {
+				nock.cleanAll();
+				done();
+			});
+
+			it("responds with code 500", function (done) {
+				expect(cubeRequest.isDone(), "no cube request").to.be.true;
+				expect(response.statusCode, "bad status").to.equal(500);
+
 				done();
 			});
 		});

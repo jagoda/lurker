@@ -1,6 +1,11 @@
 {
 	"plugins" : {
 		"good" : {},
+
+		"./hooks" : {
+			"secret" : "$env.SECRET"
+		},
+
 		"./utilities" : {}
 	},
 	"servers" : [
