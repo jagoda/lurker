@@ -24,6 +24,7 @@
     "gulp-lab": "0.0.7",
     "jshint-stylish": "^0.4.0",
     "lab": "^3.2.1",
+    "nock": "^0.42.1",
     "sinon": "^1.10.3"
   },
   "dependencies": {

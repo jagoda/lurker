@@ -1,14 +1,21 @@
 "use strict";
-var Hapi  = require("hapi");
-var hooks = require("../lib/hooks");
-var Lab   = require("lab");
+var crypto = require("crypto");
+var Hapi   = require("hapi");
+var hooks  = require("../lib/hooks");
+var Lab    = require("lab");
+var nock   = require("nock");
+var util   = require("util");
 
+var after    = Lab.after;
 var before   = Lab.before;
 var describe = Lab.describe;
 var expect   = Lab.expect;
 var it       = Lab.test;
 
 describe("The hooks plugin", function () {
+	var DIGEST        = "sha1";
+	var DIGEST_FORMAT = "hex";
+	var SECRET        = "a secret";
 	var server;
 
 	before(function (done) {
@@ -16,10 +23,16 @@ describe("The hooks plugin", function () {
 		// other places.
 		var plugin = Object.create(hooks);
 
-		plugin.options = { secret : "a secret" };
+		nock.disableNetConnect();
+		plugin.options = { secret : SECRET };
 
 		server = new Hapi.Server("localhost", 0);
 		server.pack.register(plugin, done);
+	});
+
+	after(function (done) {
+		nock.enableNetConnect();
+		done();
 	});
 
 	it("has a name", function (done) {
@@ -49,74 +62,80 @@ describe("The hooks plugin", function () {
 		});
 	});
 
-	describe("verifying a request", function () {
-		var headers = {
-			"x-hub-signature" : "sha1=9026f1a961b14cef5f4f6f5b222aefd09f16bcca"
-		};
+	describe("receiving a github event", function () {
+		function badChecksum (done, response) {
+			expect(response.statusCode, "bad status")
+			.to.equal(400);
 
-		describe("with a correct signature", function () {
-			it("passes control to the next handler", function (done) {
-				server.methods.verify(
-					new Buffer("hello world"),
-					headers,
-					function (error) {
-						expect(error, "failed to verify").not.to.exist;
-						done();
-					}
-				);
-			});
-		});
+			expect(response.payload, "bad message")
+			.to.match(/checksum/i);
 
-		describe("with an incorrect signature", function () {
+			done();
+		}
+
+		function githubEvent (headers, payload, done) {
+			server.inject(
+				{
+					headers : headers,
+					method  : "POST",
+					payload : payload,
+					url     : "/github"
+				},
+				done
+			);
+		}
+
+		describe("with an invalid signature", function () {
 			it("generates an error", function (done) {
-				server.methods.verify(
-					new Buffer("different message"),
-					headers,
-					function (error) {
-						expect(error, "no error").to.be.an.instanceOf(Error);
-
-						expect(error.message, "bad message")
-						.to.match(/checksum/);
-
-						expect(error.output.statusCode, "bad status")
-						.to.equal(400);
-
-						done();
-					}
+				githubEvent(
+					{
+						"x-hub-signature" : "sha1=foo"
+					},
+					JSON.stringify({ foo : "bar" }),
+					badChecksum.bind(null, done)
 				);
 			});
 		});
 
 		describe("without a signature", function () {
 			it("generates an error", function (done) {
-				server.methods.verify(
-					new Buffer("different message"),
+				githubEvent(
 					{},
-					function (error) {
-						expect(error, "no error").to.be.an.instanceOf(Error);
+					JSON.stringify({ foo : "bar" }),
+					badChecksum.bind(null, done)
+				);
+			});
+		});
 
-						expect(error.message, "bad message")
-						.to.match(/checksum/);
+		describe("with a valid signature", function () {
+			var response;
 
-						expect(error.output.statusCode, "bad status")
-						.to.equal(400);
+			function sign (payload) {
+				var hmac = crypto.createHmac(DIGEST, SECRET);
 
+				hmac.update(payload);
+				return util.format("%s=%s", DIGEST, hmac.digest(DIGEST_FORMAT));
+			}
+
+			before(function (done) {
+				var payload = JSON.stringify({ action : "opened" });
+
+				githubEvent(
+					{
+						"x-hub-signature" : sign(payload)
+					},
+					payload,
+					function (result) {
+						response = result;
 						done();
 					}
 				);
 			});
-		});
-	});
 
-	it("provides a /github endpoint", function (done) {
-		var request = {
-			method : "POST",
-			url    : "/github"
-		};
-
-		server.inject(request, function (response) {
-			expect(response.statusCode, "status code").not.to.equal(404);
-			done();
+			it("responds with code 200", function (done) {
+				expect(response.statusCode, "bad status").to.equal(200);
+				done();
+			});
 		});
 	});
 });
