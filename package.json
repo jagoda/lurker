@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "description": "Workflow analytics.",
   "scripts": {
-    "coverage": "gulp coverage",
+    "coverage": "gulp coverage && xdg-open coverage.html || open coverage.html",
     "start": "hapi -c lib/server.json -p lib/",
     "test": "gulp"
   },
