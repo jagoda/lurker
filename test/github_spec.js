@@ -99,7 +99,7 @@ describe("The github plugin", function () {
 			it("generates an error", function (done) {
 				githubEvent(
 					{
-						"x-hub-signature" : "sha1=foo"
+						"X-Hub-Signature" : "sha1=foo"
 					},
 					JSON.stringify({ foo : "bar" }),
 					badChecksum.bind(null, done)
@@ -139,8 +139,8 @@ describe("The github plugin", function () {
 
 				githubEvent(
 					{
-						"x-github-event"  : "pull_request",
-						"x-hub-signature" : sign(payload)
+						"X-GitHub-Event"  : "pull_request",
+						"X-Hub-Signature" : sign(payload)
 					},
 					payload,
 					function (result) {
@@ -180,8 +180,8 @@ describe("The github plugin", function () {
 
 				githubEvent(
 					{
-						"x-github-event"  : "push",
-						"x-hub-signature" : sign(payload)
+						"X-GitHub-Event"  : "push",
+						"X-Hub-Signature" : sign(payload)
 					},
 					payload,
 					function (result) {
