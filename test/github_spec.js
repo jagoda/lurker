@@ -4,7 +4,9 @@ var Environment = require("./helpers/Environment");
 var github      = require("../lib/github");
 var Hapi        = require("hapi");
 var Lab         = require("lab");
+var Nipple      = require("nipple");
 var nock        = require("nock");
+var sinon       = require("sinon");
 var util        = require("util");
 
 var after    = Lab.after;
@@ -187,6 +189,31 @@ describe("The github plugin", function () {
 			});
 		});
 
+		describe("failing to parse the incoming payload", function () {
+			var response;
+
+			before(function (done) {
+				var payload = "foo";
+
+				githubEvent(
+					{
+						"X-GitHub-Event"  : "push",
+						"X-Hub-Signature" : sign(payload)
+					},
+					payload,
+					function (result) {
+						response = result;
+						done();
+					}
+				);
+			});
+
+			it("responds with code 400", function (done) {
+				expect(response.statusCode, "bad status").to.equal(400);
+				done();
+			});
+		});
+
 		describe("failing to create a cube event", function () {
 			var cubeRequest;
 			var response;
@@ -220,6 +247,44 @@ describe("The github plugin", function () {
 				expect(cubeRequest.isDone(), "no cube request").to.be.true;
 				expect(response.statusCode, "bad status").to.equal(500);
 
+				done();
+			});
+		});
+
+		describe("encounterring an unexpected error", function () {
+			var cubeStub;
+			var response;
+
+			before(function (done) {
+				var payload = JSON.stringify({ foo : "bar" });
+
+				cubeStub = sinon.stub(
+					Nipple, "post",
+					function (uri, options, callback) {
+						callback(new Error("boom!"));
+					}
+				);
+
+				githubEvent(
+					{
+						"X-GitHub-Event"  : "push",
+						"X-Hub-Signature" : sign(payload)
+					},
+					payload,
+					function (result) {
+						response = result;
+						done();
+					}
+				);
+			});
+
+			after(function (done) {
+				cubeStub.restore();
+				done();
+			});
+
+			it("responds with code 500", function (done) {
+				expect(response.statusCode, "bad status").to.equal(500);
 				done();
 			});
 		});
