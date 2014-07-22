@@ -149,20 +149,24 @@ describe("The github plugin", function () {
 				cubeRequest = nock(CUBE_BASE)
 				.post(
 					EVENT_ENDPOINT,
-					{
-						data : {
-							action : "opened"
-						},
+					[
+						{
+							data : {
+								action : "opened"
+							},
 
-						type : "pull_request"
-					}
+							id   : "auniqueid",
+							type : "pull_request"
+						}
+					]
 				)
 				.reply(200);
 
 				githubEvent(
 					{
-						"X-GitHub-Event"  : "pull_request",
-						"X-Hub-Signature" : sign(payload)
+						"X-GitHub-Delivery" : "auniqueid",
+						"X-GitHub-Event"    : "pull_request",
+						"X-Hub-Signature"   : sign(payload)
 					},
 					payload,
 					function (result) {
