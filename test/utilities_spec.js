@@ -10,6 +10,7 @@ var expect   = Lab.expect;
 var it       = Lab.test;
 
 describe("The utilities plugin", function () {
+
 	it("has a name", function (done) {
 		expect(utilities.register.attributes, "plugin name")
 		.to.have.property("name", "utilities");

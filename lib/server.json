@@ -2,9 +2,7 @@
 	"plugins" : {
 		"good" : {},
 
-		"./github" : {
-			"secret" : "$env.SECRET"
-		},
+		"./github" : {},
 
 		"./utilities" : {}
 	},

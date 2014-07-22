@@ -1,10 +1,11 @@
 "use strict";
-var crypto = require("crypto");
-var github = require("../lib/github");
-var Hapi   = require("hapi");
-var Lab    = require("lab");
-var nock   = require("nock");
-var util   = require("util");
+var crypto      = require("crypto");
+var Environment = require("./helpers/Environment");
+var github      = require("../lib/github");
+var Hapi        = require("hapi");
+var Lab         = require("lab");
+var nock        = require("nock");
+var util        = require("util");
 
 var after    = Lab.after;
 var before   = Lab.before;
@@ -16,6 +17,8 @@ describe("The github plugin", function () {
 	var DIGEST        = "sha1";
 	var DIGEST_FORMAT = "hex";
 	var SECRET        = "a secret";
+
+	var environment;
 	var server;
 
 	before(function (done) {
@@ -23,14 +26,16 @@ describe("The github plugin", function () {
 		// other places.
 		var plugin = Object.create(github);
 
+		environment = new Environment();
+		environment.set("SECRET", SECRET);
 		nock.disableNetConnect();
-		plugin.options = { secret : SECRET };
 
 		server = new Hapi.Server("localhost", 0);
 		server.pack.register(plugin, done);
 	});
 
 	after(function (done) {
+		environment.restore();
 		nock.enableNetConnect();
 		done();
 	});
@@ -49,16 +54,31 @@ describe("The github plugin", function () {
 		done();
 	});
 
-	it("requires a secret", function (done) {
-		var server = new Hapi.Server("localhost", 0);
+	describe("without a secret", function () {
+		var environment;
 
-		server.pack.register(github, function (error) {
-			expect(error, "no error").to.be.an.instanceOf(Error);
-
-			expect(error.message, "bad message")
-			.to.match(/secret is required/i);
-
+		before(function (done) {
+			environment = new Environment();
+			environment.set("SECRET");
 			done();
+		});
+
+		after(function (done) {
+			environment.restore();
+			done();
+		});
+
+		it("fails to start", function (done) {
+			var server = new Hapi.Server("localhost", 0);
+
+			server.pack.register(github, function (error) {
+				expect(error, "no error").to.be.an.instanceOf(Error);
+
+				expect(error.message, "bad message")
+				.to.match(/secret is required/i);
+
+				done();
+			});
 		});
 	});
 
