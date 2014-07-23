@@ -8,9 +8,9 @@ lurker
 ## Overview
 
 **Prerequisites**:
- + [cube](cube)
+ + [cube][cube]
 
-`lurker` uses [cube](cube) to collect metrics about and create reports around
+`lurker` uses [cube][cube] to collect metrics about and create reports around
 process workflows. Assuming the prerequisites are installed, the server can
 be setup using the following:
 
@@ -25,4 +25,8 @@ using the `PORT` environment variable. By default `lurker` listens on 8080.
 
 ## Supported Webhooks
 
- + **GitHub** -- hooks should be sent to the `/github` endpoint.
+| Hook   | Endpoint  |
+|--------|-----------|
+| GitHub | `/github` |
+
+[cube]: https://github.com/square/cube "Cube"
