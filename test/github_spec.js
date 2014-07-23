@@ -6,8 +6,10 @@ var Hapi        = require("hapi");
 var Lab         = require("lab");
 var Nipple      = require("nipple");
 var nock        = require("nock");
+var Q           = require("q");
 var sinon       = require("sinon");
 var util        = require("util");
+var utilities   = require("../lib/utilities");
 
 var after    = Lab.after;
 var before   = Lab.before;
@@ -24,22 +26,26 @@ describe("The github plugin", function () {
 	var server;
 
 	before(function (done) {
-		// Copy the plugin object so that configuration isn't propagated to
-		// other places.
-		var plugin = Object.create(github);
-
 		environment = new Environment();
 		environment.set("SECRET", SECRET);
 		nock.disableNetConnect();
 
 		server = new Hapi.Server("localhost", 0);
-		server.pack.register(plugin, done);
+		Q.all([
+			Q.ninvoke(server.pack, "register", utilities),
+			Q.ninvoke(server.pack, "register", github)
+		])
+		.then(function () {
+			// Start the server to complete plugin registration.
+			return Q.ninvoke(server, "start");
+		})
+		.nodeify(done);
 	});
 
 	after(function (done) {
 		environment.restore();
 		nock.enableNetConnect();
-		done();
+		Q.ninvoke(server, "stop").nodeify(done);
 	});
 
 	it("has a name", function (done) {
@@ -57,21 +63,25 @@ describe("The github plugin", function () {
 	});
 
 	describe("without a secret", function () {
+		var consoleStub;
 		var environment;
 
 		before(function (done) {
+			// Supress console output.
+			consoleStub = sinon.stub(console, "error");
 			environment = new Environment();
 			environment.set("SECRET");
 			done();
 		});
 
 		after(function (done) {
+			consoleStub.restore();
 			environment.restore();
 			done();
 		});
 
 		it("fails to start", function (done) {
-			var server = new Hapi.Server("localhost", 0);
+			var server = new Hapi.Server();
 
 			server.pack.register(github, function (error) {
 				expect(error, "no error").to.be.an.instanceOf(Error);
