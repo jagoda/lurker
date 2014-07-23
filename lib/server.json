@@ -1,9 +1,8 @@
 {
 	"plugins" : {
 		"good" : {},
-
 		"./github" : {},
-
+		"./metrics" : {},
 		"./utilities" : {}
 	},
 	"servers" : [

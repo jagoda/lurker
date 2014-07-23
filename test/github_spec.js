@@ -4,6 +4,7 @@ var Environment = require("./helpers/Environment");
 var github      = require("../lib/github");
 var Hapi        = require("hapi");
 var Lab         = require("lab");
+var metrics     = require("../lib/metrics");
 var Nipple      = require("nipple");
 var nock        = require("nock");
 var Q           = require("q");
@@ -33,6 +34,7 @@ describe("The github plugin", function () {
 		server = new Hapi.Server("localhost", 0);
 		Q.all([
 			Q.ninvoke(server.pack, "register", utilities),
+			Q.ninvoke(server.pack, "register", metrics),
 			Q.ninvoke(server.pack, "register", github)
 		])
 		.then(function () {
