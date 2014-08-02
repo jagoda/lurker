@@ -20,13 +20,6 @@ describe("The utilities plugin", function () {
 		done();
 	});
 
-	it("has a version", function (done) {
-		expect(utilities.register.attributes, "plugin version")
-		.to.have.property("version");
-
-		done();
-	});
-
 	describe("on pack startup", function () {
 		var loggedAfter;
 		var loggedBefore;

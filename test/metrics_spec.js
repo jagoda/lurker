@@ -23,13 +23,6 @@ describe("The metrics plugin", function () {
 		done();
 	});
 
-	it("has a version", function (done) {
-		expect(metrics.register.attributes, "no version")
-		.to.have.property("version");
-
-		done();
-	});
-
 	describe("creating a new event", function () {
 		var server;
 

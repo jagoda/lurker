@@ -57,13 +57,6 @@ describe("The github plugin", function () {
 		done();
 	});
 
-	it("has a version", function (done) {
-		expect(github.register.attributes, "plugin version")
-		.to.have.property("version");
-
-		done();
-	});
-
 	describe("without a secret", function () {
 		var consoleStub;
 		var environment;
