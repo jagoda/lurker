@@ -1,6 +1,7 @@
 {
 	"plugins" : {
 		"good" : {},
+		"./cube" : {},
 		"./github" : {},
 		"./metrics" : {},
 		"./utilities" : {}

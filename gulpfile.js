@@ -9,7 +9,7 @@ var _        = require("lodash");
 
 var JSHINTRC     = ".jshintrc";
 var SOURCE_FILES = [ "*.js", "lib/**/*.js" ];
-var TEST_FILES   = [ "test/**/*_spec.js" ];
+var TEST_FILES   = [ "test/helpers/setup.js", "test/**/*_spec.js" ];
 
 function jsonFile (file) {
 	return JSON.parse(fs.readFileSync(file, { encoding : "utf8" }));
