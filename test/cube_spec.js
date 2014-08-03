@@ -32,7 +32,7 @@ describe("The cube pass-through API", function () {
 		done();
 	});
 
-	describe("/status", function () {
+	describe("/", function () {
 		var browser;
 		var cubeRequest;
 
@@ -42,7 +42,7 @@ describe("The cube pass-through API", function () {
 			.reply(200, "cube page");
 
 			browser = new Browser();
-			browser.visit("/status").nodeify(done);
+			browser.visit("/").nodeify(done);
 		});
 
 		after(function (done) {
