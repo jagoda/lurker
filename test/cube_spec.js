@@ -1,5 +1,4 @@
 "use strict";
-var Browser = require("zombie");
 var cube    = require("../lib/cube");
 var Lab     = require("lab");
 var nock    = require("nock");
@@ -32,32 +31,5 @@ describe("The cube pass-through API", function () {
 		done();
 	});
 
-	describe("/", function () {
-		var browser;
-		var cubeRequest;
-
-		before(function (done) {
-			cubeRequest = nock("http://localhost:1081")
-			.get("/")
-			.reply(200, "cube page");
-
-			browser = new Browser();
-			browser.visit("/").nodeify(done);
-		});
-
-		after(function (done) {
-			nock.cleanAll();
-			done();
-		});
-
-		it("proxies the request to the cube server", function (done) {
-			expect(cubeRequest.isDone(), "cube request").to.be.true;
-			done();
-		});
-
-		it("is the cube default evaluator", function (done) {
-			expect(browser.text("body"), "page").to.equal("cube page");
-			done();
-		});
-	});
+	// TODO: add API endpoints
 });
