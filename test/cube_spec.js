@@ -1,4 +1,5 @@
 "use strict";
+var Browser = require("zombie");
 var cube    = require("../lib/cube");
 var Lab     = require("lab");
 var nock    = require("nock");
@@ -20,6 +21,10 @@ describe("The cube plugin", function () {
 });
 
 describe("The cube pass-through API", function () {
+	var TOKEN         = "atoken";
+	var AUTHORIZATION = "token " + TOKEN;
+	var GITHUB_API    = "https://api.github.com";
+	var USERNAME      = "octocat";
 
 	before(function (done) {
 		nock.disableNetConnect();
@@ -31,5 +36,86 @@ describe("The cube pass-through API", function () {
 		done();
 	});
 
-	// TODO: add API endpoints
+	describe("/collector", function () {
+		var browser;
+
+		function collectorRequest () {
+			return nock("http://localhost:1080")
+			.get("/")
+			.reply(200, "cube collector");
+		}
+
+		before(function (done) {
+			browser = new Browser();
+			done();
+		});
+
+		describe("when authenticated", function () {
+			var request;
+			var response;
+
+			before(function (done) {
+				request = collectorRequest();
+
+				nock(GITHUB_API)
+				.get(
+					"/applications/" + process.env.CLIENT_ID + "/tokens/" +
+					TOKEN
+				)
+				.reply(200, {
+					user : { login : USERNAME }
+				});
+
+				browser.http({
+					headers : {
+						"Authorization": AUTHORIZATION
+					},
+
+					url : "/collector"
+				})
+				.then(function (_response_) {
+					response = _response_;
+				})
+				.nodeify(done);
+			});
+
+			after(function (done) {
+				nock.cleanAll();
+				done();
+			});
+
+			it("forwards requests to the cube collector", function (done) {
+				expect(request.isDone(), "cube request").to.be.true;
+				expect(response.statusCode, "status").to.equal(200);
+				expect(response.payload, "payload").to.equal("cube collector");
+				done();
+			});
+		});
+
+		describe("when not authenticated", function () {
+			var request;
+			var response;
+
+			before(function (done) {
+				request = collectorRequest();
+
+				browser.http({ url : "/collector" })
+				.then(function (_response_) {
+					response = _response_;
+				})
+				.nodeify(done);
+			});
+
+			after(function (done) {
+				nock.cleanAll();
+				done();
+			});
+
+			it("rejects requests", function (done) {
+				expect(request.isDone(), "cube request").to.be.false;
+				expect(response.statusCode, "status").to.equal(401);
+				done();
+			});
+		});
+	});
 });

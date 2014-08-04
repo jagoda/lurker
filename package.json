@@ -24,12 +24,13 @@
     "gulp-lab": "0.0.7",
     "jshint-stylish": "^0.4.0",
     "lab": "^3.2.1",
-    "mummy": "^0.3.2",
+    "mummy": "^0.4.2",
     "nock": "^0.42.1",
     "sinon": "^1.10.3",
     "zombie": "^2.0.0-alpha31"
   },
   "dependencies": {
+    "badge": "^0.1.1",
     "good": "^2.2.0",
     "hapi": "^6.2.0",
     "lodash": "^2.4.1",
