@@ -26,6 +26,17 @@ describe("The cube pass-through API", function () {
 	var GITHUB_API    = "https://api.github.com";
 	var USERNAME      = "octocat";
 
+	function tokenRequest () {
+		return nock(GITHUB_API)
+		.get(
+			"/applications/" + process.env.CLIENT_ID + "/tokens/" +
+			TOKEN
+		)
+		.reply(200, {
+			user : { login : USERNAME }
+		});
+	}
+
 	before(function (done) {
 		nock.disableNetConnect();
 		done();
@@ -56,15 +67,7 @@ describe("The cube pass-through API", function () {
 
 			before(function (done) {
 				request = collectorRequest();
-
-				nock(GITHUB_API)
-				.get(
-					"/applications/" + process.env.CLIENT_ID + "/tokens/" +
-					TOKEN
-				)
-				.reply(200, {
-					user : { login : USERNAME }
-				});
+				tokenRequest();
 
 				browser.http({
 					headers : {
@@ -100,6 +103,81 @@ describe("The cube pass-through API", function () {
 				request = collectorRequest();
 
 				browser.http({ url : "/collector" })
+				.then(function (_response_) {
+					response = _response_;
+				})
+				.nodeify(done);
+			});
+
+			after(function (done) {
+				nock.cleanAll();
+				done();
+			});
+
+			it("rejects requests", function (done) {
+				expect(request.isDone(), "cube request").to.be.false;
+				expect(response.statusCode, "status").to.equal(401);
+				done();
+			});
+		});
+	});
+
+	describe("/evaluator", function () {
+		var browser;
+
+		function evaluatorRequest () {
+			return nock("http://localhost:1081")
+			.get("/")
+			.reply(200, "cube evaluator");
+		}
+
+		before(function (done) {
+			browser = new Browser();
+			done();
+		});
+
+		describe("when authenticated", function () {
+			var request;
+			var response;
+
+			before(function (done) {
+				request = evaluatorRequest();
+				tokenRequest();
+
+				browser.http({
+					headers : {
+						"Authorization" : AUTHORIZATION
+					},
+
+					url : "/evaluator"
+				})
+				.then(function (_response_) {
+					response = _response_;
+				})
+				.nodeify(done);
+			});
+
+			after(function (done) {
+				nock.cleanAll();
+				done();
+			});
+
+			it("forwards requests to the cube evaluator", function (done) {
+				expect(request.isDone(), "cube request").to.be.true;
+				expect(response.statusCode, "status").to.equal(200);
+				expect(response.payload, "payload").to.equal("cube evaluator");
+				done();
+			});
+		});
+
+		describe("when not authenticated", function () {
+			var request;
+			var response;
+
+			before(function (done) {
+				request = evaluatorRequest();
+
+				browser.http({ url : "/evaluator" })
 				.then(function (_response_) {
 					response = _response_;
 				})
