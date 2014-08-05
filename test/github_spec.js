@@ -1,16 +1,14 @@
 "use strict";
+var Browser     = require("zombie");
 var crypto      = require("crypto");
 var Environment = require("./helpers/Environment");
 var github      = require("../lib/github");
 var Hapi        = require("hapi");
 var Lab         = require("lab");
-var metrics     = require("../lib/metrics");
 var Nipple      = require("nipple");
 var nock        = require("nock");
-var Q           = require("q");
 var sinon       = require("sinon");
 var util        = require("util");
-var utilities   = require("../lib/utilities");
 
 var after    = Lab.after;
 var before   = Lab.before;
@@ -19,35 +17,15 @@ var expect   = Lab.expect;
 var it       = Lab.test;
 
 describe("The github plugin", function () {
-	var DIGEST        = "sha1";
-	var DIGEST_FORMAT = "hex";
-	var SECRET        = "a secret";
-
-	var environment;
-	var server;
 
 	before(function (done) {
-		environment = new Environment();
-		environment.set("SECRET", SECRET);
 		nock.disableNetConnect();
-
-		server = new Hapi.Server("localhost", 0);
-		Q.all([
-			Q.ninvoke(server.pack, "register", utilities),
-			Q.ninvoke(server.pack, "register", metrics),
-			Q.ninvoke(server.pack, "register", github)
-		])
-		.then(function () {
-			// Start the server to complete plugin registration.
-			return Q.ninvoke(server, "start");
-		})
-		.nodeify(done);
+		done();
 	});
 
 	after(function (done) {
-		environment.restore();
 		nock.enableNetConnect();
-		Q.ninvoke(server, "stop").nodeify(done);
+		done();
 	});
 
 	it("has a name", function (done) {
@@ -88,30 +66,48 @@ describe("The github plugin", function () {
 			});
 		});
 	});
+});
+
+describe("The /github webhook", function () {
+	var DIGEST        = "sha1";
+	var DIGEST_FORMAT = "hex";
+	var SECRET;
+
+	var browser;
+
+	before(function (done) {
+		SECRET = process.env.SECRET;
+
+		nock.disableNetConnect();
+		browser = new Browser();
+		done();
+	});
+
+	after(function (done) {
+		nock.enableNetConnect();
+		done();
+	});
 
 	describe("receiving a github event", function () {
 		var CUBE_BASE      = "http://localhost:1080";
 		var EVENT_ENDPOINT = "/1.0/event/put";
 
-		function badChecksum (done, response) {
+		function badChecksum (response) {
 			expect(response.statusCode, "bad status")
 			.to.equal(400);
 
 			expect(response.payload, "bad message")
 			.to.match(/checksum/i);
-
-			done();
 		}
 
-		function githubEvent (headers, payload, done) {
-			server.inject(
+		function githubEvent (headers, payload) {
+			return browser.http(
 				{
 					headers : headers,
 					method  : "POST",
 					payload : payload,
 					url     : "/github"
-				},
-				done
+				}
 			);
 		}
 
@@ -128,9 +124,10 @@ describe("The github plugin", function () {
 					{
 						"X-Hub-Signature" : "sha1=foo"
 					},
-					JSON.stringify({ foo : "bar" }),
-					badChecksum.bind(null, done)
-				);
+					JSON.stringify({ foo : "bar" })
+				)
+				.then(badChecksum)
+				.nodeify(done);
 			});
 		});
 
@@ -138,9 +135,10 @@ describe("The github plugin", function () {
 			it("generates an error", function (done) {
 				githubEvent(
 					{},
-					JSON.stringify({ foo : "bar" }),
-					badChecksum.bind(null, done)
-				);
+					JSON.stringify({ foo : "bar" })
+				)
+				.then(badChecksum)
+				.nodeify(done);
 			});
 		});
 
@@ -173,12 +171,12 @@ describe("The github plugin", function () {
 						"X-GitHub-Event"    : "pull_request",
 						"X-Hub-Signature"   : sign(payload)
 					},
-					payload,
-					function (result) {
-						response = result;
-						done();
-					}
-				);
+					payload
+				)
+				.then(function (_response_) {
+					response = _response_;
+				})
+				.nodeify(done);
 			});
 
 			after(function (done) {
@@ -209,12 +207,12 @@ describe("The github plugin", function () {
 						"X-GitHub-Event"  : "push",
 						"X-Hub-Signature" : sign(payload)
 					},
-					payload,
-					function (result) {
-						response = result;
-						done();
-					}
-				);
+					payload
+				)
+				.then(function (_response_) {
+					response = _response_;
+				})
+				.nodeify(done);
 			});
 
 			it("responds with code 400", function (done) {
@@ -239,12 +237,12 @@ describe("The github plugin", function () {
 						"X-GitHub-Event"  : "push",
 						"X-Hub-Signature" : sign(payload)
 					},
-					payload,
-					function (result) {
-						response = result;
-						done();
-					}
-				);
+					payload
+				)
+				.then(function (_response_) {
+					response = _response_;
+				})
+				.nodeify(done);
 			});
 
 			after(function (done) {
@@ -255,7 +253,6 @@ describe("The github plugin", function () {
 			it("responds with code 500", function (done) {
 				expect(cubeRequest.isDone(), "no cube request").to.be.true;
 				expect(response.statusCode, "bad status").to.equal(500);
-
 				done();
 			});
 		});
@@ -279,12 +276,12 @@ describe("The github plugin", function () {
 						"X-GitHub-Event"  : "push",
 						"X-Hub-Signature" : sign(payload)
 					},
-					payload,
-					function (result) {
-						response = result;
-						done();
-					}
-				);
+					payload
+				)
+				.then(function (_response_) {
+					response = _response_;
+				})
+				.nodeify(done);
 			});
 
 			after(function (done) {
