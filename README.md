@@ -19,15 +19,18 @@ be setup using the following:
 	npm install
 	export CLIENT_ID="GitHub client ID"
 	export CLIENT_SECRET="GitHub client secret"
+	export ORGANIZATION="GitHub organization"
 	export SECRET="a shared secret"
 	npm start
 
 The `SECRET` environment variable is required in order for `lurker` to verify
 webhook requests. The `CLIENT_ID` and `CLIENT_SECRET` environment variables
 are also required and are used to verify requests to the [cube][cube]
-pass-through API (via [badge][badge]). The port that the server listens on can
-also be configured using the `PORT` environment variable. By default `lurker`
-listens on 8080.
+pass-through API (via [badge][badge]). The `ORGANIZATION` environment variable
+is required and specifies which GitHub organization's members will be allowed
+to access the status UI. The port that the server listens on can also be
+configured using the `PORT` environment variable. By default `lurker` listens
+on 8080.
 
 ## Cube Pass-Through API
 
