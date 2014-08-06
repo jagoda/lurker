@@ -24,21 +24,38 @@ describe("The lurker status page", function () {
 	var GITHUB_API = "https://api.github.com";
 	var USERNAME   = "octocat";
 
+	var evaluator = [
+		"<html>",
+		"<head>",
+		"<script src='/test.js'></script>",
+		"</head>",
+		"<body>cube evaluator</body>",
+		"</html>"
+	].join("");
+
 	function cubeRequest () {
 		return nock("http://localhost:1081")
 		.get("/")
-		.reply(200, "cube evaluator");
+		.reply(200, evaluator)
+		.get("/test.js")
+		.reply(200, "");
 	}
 
 	function orgRequest () {
 		return nock(GITHUB_API)
 		.get("/orgs/" + process.env.ORGANIZATION + "/members/" + USERNAME)
+		// Auth is required once for the '/' request and once for the '/test.js'
+		// request.
+		.twice()
 		.reply(204);
 	}
 
 	function userRequest () {
 		return nock(GITHUB_API)
 		.get("/user")
+		// Auth is required once for the '/' request and once for the '/test.js'
+		// request.
+		.twice()
 		.reply(200, { login : USERNAME });
 	}
 
