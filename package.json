@@ -30,7 +30,7 @@
     "zombie": "^2.0.0-alpha31"
   },
   "dependencies": {
-    "badge": "^1.0.1",
+    "badge": "^1.0.2",
     "good": "^2.2.0",
     "hapi": "^6.2.0",
     "lodash": "^2.4.1",
