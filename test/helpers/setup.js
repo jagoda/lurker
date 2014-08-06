@@ -15,6 +15,7 @@ var environment = new Environment();
 before(function (done) {
 	environment.set("CLIENT_ID", "aclientid");
 	environment.set("CLIENT_SECRET", "aclientsecret");
+	environment.set("ORGANIZATION", "octocats");
 	environment.set("SECRET", "asecret");
 	Browser.default.silent = true;
 

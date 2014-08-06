@@ -22,15 +22,24 @@ describe("The lurker plugin", function () {
 
 describe("The lurker status page", function () {
 	var GITHUB_API = "https://api.github.com";
-
-	function authRequest () {
-		return nock(GITHUB_API).get("/user");
-	}
+	var USERNAME   = "octocat";
 
 	function cubeRequest () {
 		return nock("http://localhost:1081")
 		.get("/")
 		.reply(200, "cube evaluator");
+	}
+
+	function orgRequest () {
+		return nock(GITHUB_API)
+		.get("/orgs/" + process.env.ORGANIZATION + "/members/" + USERNAME)
+		.reply(204);
+	}
+
+	function userRequest () {
+		return nock(GITHUB_API)
+		.get("/user")
+		.reply(200, { login : USERNAME });
 	}
 
 	before(function (done) {
@@ -46,14 +55,16 @@ describe("The lurker status page", function () {
 	describe("when authenticated", function () {
 		var browser;
 		var cubeNock;
+		var orgNock;
 		var userNock;
 
 		before(function (done) {
 			browser  = new Browser();
 			cubeNock = cubeRequest();
-			userNock = authRequest().reply(200, { login : "octocat" });
+			orgNock  = orgRequest();
+			userNock = userRequest();
 
-			browser.authenticate().basic("octocat", "password");
+			browser.authenticate().basic(USERNAME, "password");
 			browser.visit("/").nodeify(done);
 		});
 
@@ -63,7 +74,8 @@ describe("The lurker status page", function () {
 		});
 
 		it("authenticates the user with GitHub", function (done) {
-			expect(userNock.isDone(), "auth request").to.be.true;
+			expect(userNock.isDone(), "user request").to.be.true;
+			expect(orgNock.isDone(), "org request").to.be.true;
 			done();
 		});
 
