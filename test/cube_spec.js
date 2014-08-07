@@ -24,6 +24,7 @@ describe("The cube pass-through API", function () {
 	var TOKEN         = "atoken";
 	var AUTHORIZATION = "token " + TOKEN;
 	var GITHUB_API    = "https://api.github.com";
+	var PASSWORD      = "password";
 	var USERNAME      = "octocat";
 
 	function tokenRequest () {
@@ -146,7 +147,7 @@ describe("The cube pass-through API", function () {
 
 				browser.http({
 					headers : {
-						"Authorization" : AUTHORIZATION
+						Authorization : AUTHORIZATION
 					},
 
 					url : "/evaluator"
@@ -191,6 +192,78 @@ describe("The cube pass-through API", function () {
 
 			it("rejects requests", function (done) {
 				expect(request.isDone(), "cube request").to.be.false;
+				expect(response.statusCode, "status").to.equal(401);
+				done();
+			});
+		});
+	});
+
+	describe("/token", function () {
+
+		describe("when authenticated", function () {
+			var response;
+
+			before(function (done) {
+				var authorization = "Basic " +
+					(new Buffer(USERNAME + ":" + PASSWORD)).toString("base64");
+				var browser = new Browser();
+
+				nock(GITHUB_API)
+				.get("/user")
+				.reply(200, { login : USERNAME });
+
+				nock(GITHUB_API)
+				.get(
+					"/orgs/" + process.env.ORGANIZATION + "/members/" +
+					USERNAME
+				)
+				.reply(204);
+
+				nock(GITHUB_API)
+				.put("/authorizations/clients/" + process.env.CLIENT_ID)
+				.reply(200, { token : TOKEN });
+
+				browser.http({
+					headers : {
+						Authorization : authorization
+					},
+
+					url : "/token"
+				})
+				.then(function (_response_) {
+					response = _response_;
+				})
+				.nodeify(done);
+			});
+
+			after(function (done) {
+				nock.cleanAll();
+				done();
+			});
+
+			it("returns an access token", function (done) {
+				expect(response.statusCode, "status").to.equal(200);
+				expect(JSON.parse(response.payload), "payload").to.deep.equal({
+					token : TOKEN
+				});
+				done();
+			});
+		});
+
+		describe("when not authenticated", function () {
+			var response;
+
+			before(function (done) {
+				var browser = new Browser();
+
+				browser.http({ url : "/token" })
+				.then(function (_response_) {
+					response = _response_;
+				})
+				.nodeify(done);
+			});
+
+			it("rejects the request", function (done) {
 				expect(response.statusCode, "status").to.equal(401);
 				done();
 			});
