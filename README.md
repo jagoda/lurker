@@ -42,6 +42,9 @@ is a valid GitHub token associated with the `CLIENT_ID` and `CLIENT_SECRET`.
 Other than the authentication header, all the other API functions behave as
 normal. Please see the [cube documentation][cube] for more details.
 
+A token can be created by making a `GET` request to `/tokens` using basic auth
+and GitHub credentials.
+
 ## Supported Webhooks
 
 | Hook   | Endpoint  |
