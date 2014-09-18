@@ -5,7 +5,6 @@ var Environment = require("apparition").Environment;
 var expect      = require("chai").expect;
 var github      = require("../lib/github");
 var Hapi        = require("hapi");
-var Nipple      = require("nipple");
 var nock        = require("nock");
 var sinon       = require("sinon");
 var util        = require("util");
@@ -83,9 +82,6 @@ describe("The /github webhook", function () {
 	});
 
 	describe("receiving a github event", function () {
-		var CUBE_BASE      = "http://localhost:1080";
-		var EVENT_ENDPOINT = "/1.0/event/put";
-
 		function badChecksum (response) {
 			expect(response.statusCode, "bad status")
 			.to.equal(400);
@@ -136,59 +132,44 @@ describe("The /github webhook", function () {
 			});
 		});
 
-		describe("with a valid signature", function () {
-			var cubeRequest;
-			var response;
+//		describe("with a valid signature", function () {
+//			var pointStub;
+//			var response;
 
-			before(function (done) {
-				var payload = JSON.stringify({ action : "opened" });
+//			before(function (done) {
+//				var payload = JSON.stringify({ action : "opened" });
 
-				cubeRequest = nock(CUBE_BASE)
-				.post(
-					EVENT_ENDPOINT,
-					[
-						{
-							data : {
-								action : "opened"
-							},
+//				pointStub = sinon.stub(browser.pack.plugins.outflux, "point");
 
-							id   : "auniqueid",
-							type : "pull_request"
-						}
-					]
-				)
-				.reply(200);
+//				githubEvent(
+//					{
+//						"X-GitHub-Delivery" : "auniqueid",
+//						"X-GitHub-Event"    : "pull_request",
+//						"X-Hub-Signature"   : sign(payload)
+//					},
+//					payload
+//				)
+//				.then(function (_response_) {
+//					response = _response_;
+//				})
+//				.nodeify(done);
+//			});
 
-				githubEvent(
-					{
-						"X-GitHub-Delivery" : "auniqueid",
-						"X-GitHub-Event"    : "pull_request",
-						"X-Hub-Signature"   : sign(payload)
-					},
-					payload
-				)
-				.then(function (_response_) {
-					response = _response_;
-				})
-				.nodeify(done);
-			});
+//			it("responds with code 200", function (done) {
+//				expect(response.statusCode, "bad status").to.equal(200);
+//				done();
+//			});
 
-			after(function (done) {
-				nock.cleanAll();
-				done();
-			});
+//			it("creates a new event", function (done) {
+//				expect(pointStub.callCount, "no event").to.equal(1);
+//				expect(
+//					pointStub.calledWith("github", sinon.match.object),
+//					"payload"
+//				).to.be.true;
 
-			it("responds with code 200", function (done) {
-				expect(response.statusCode, "bad status").to.equal(200);
-				done();
-			});
-
-			it("creates a new cube event", function (done) {
-				expect(cubeRequest.isDone(), "no cube request").to.be.true;
-
-				done();
-			});
-		});
+//				done();
+//			});
+//		});
 
 		describe("failing to parse the incoming payload", function () {
 			var response;
@@ -211,80 +192,6 @@ describe("The /github webhook", function () {
 
 			it("responds with code 400", function (done) {
 				expect(response.statusCode, "bad status").to.equal(400);
-				done();
-			});
-		});
-
-		describe("failing to create a cube event", function () {
-			var cubeRequest;
-			var response;
-
-			before(function (done) {
-				var payload = JSON.stringify({ head : "foo" });
-
-				cubeRequest = nock(CUBE_BASE)
-				.post(EVENT_ENDPOINT)
-				.reply(503);
-
-				githubEvent(
-					{
-						"X-GitHub-Event"  : "push",
-						"X-Hub-Signature" : sign(payload)
-					},
-					payload
-				)
-				.then(function (_response_) {
-					response = _response_;
-				})
-				.nodeify(done);
-			});
-
-			after(function (done) {
-				nock.cleanAll();
-				done();
-			});
-
-			it("responds with code 500", function (done) {
-				expect(cubeRequest.isDone(), "no cube request").to.be.true;
-				expect(response.statusCode, "bad status").to.equal(500);
-				done();
-			});
-		});
-
-		describe("encounterring an unexpected error", function () {
-			var cubeStub;
-			var response;
-
-			before(function (done) {
-				var payload = JSON.stringify({ foo : "bar" });
-
-				cubeStub = sinon.stub(
-					Nipple, "post",
-					function (uri, options, callback) {
-						callback(new Error("boom!"));
-					}
-				);
-
-				githubEvent(
-					{
-						"X-GitHub-Event"  : "push",
-						"X-Hub-Signature" : sign(payload)
-					},
-					payload
-				)
-				.then(function (_response_) {
-					response = _response_;
-				})
-				.nodeify(done);
-			});
-
-			after(function (done) {
-				cubeStub.restore();
-				done();
-			});
-
-			it("responds with code 500", function (done) {
-				expect(response.statusCode, "bad status").to.equal(500);
 				done();
 			});
 		});
