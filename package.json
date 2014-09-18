@@ -18,6 +18,7 @@
   },
   "homepage": "https://github.com/jagoda/lurker",
   "devDependencies": {
+    "apparition": "^0.1.1",
     "chai": "^1.9.1",
     "gulp": "^3.8.6",
     "gulp-jshint": "^1.7.1",

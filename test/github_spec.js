@@ -1,7 +1,7 @@
 "use strict";
 var Browser     = require("zombie");
 var crypto      = require("crypto");
-var Environment = require("./helpers/Environment");
+var Environment = require("apparition").Environment;
 var github      = require("../lib/github");
 var Hapi        = require("hapi");
 var Lab         = require("lab");
@@ -43,7 +43,7 @@ describe("The github plugin", function () {
 			// Supress console output.
 			consoleStub = sinon.stub(console, "error");
 			environment = new Environment();
-			environment.set("SECRET");
+			environment.delete("SECRET");
 			done();
 		});
 

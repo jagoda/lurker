@@ -1,6 +1,6 @@
 "use strict";
 var Browser     = require("zombie");
-var Environment = require("./Environment");
+var Environment = require("apparition").Environment;
 var Good        = require("good");
 var Lab         = require("lab");
 var mummy       = require("mummy");
