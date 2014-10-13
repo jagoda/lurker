@@ -10,7 +10,6 @@ var sinon       = require("sinon");
 var util        = require("util");
 
 describe("The github plugin", function () {
-
 	before(function (done) {
 		nock.disableNetConnect();
 		done();
@@ -132,44 +131,44 @@ describe("The /github webhook", function () {
 			});
 		});
 
-//		describe("with a valid signature", function () {
-//			var pointStub;
-//			var response;
+		describe("with a valid signature", function () {
+			var pointStub;
+			var response;
 
-//			before(function (done) {
-//				var payload = JSON.stringify({ action : "opened" });
+			before(function (done) {
+				var payload = JSON.stringify({ action : "opened" });
 
-//				pointStub = sinon.stub(browser.pack.plugins.outflux, "point");
+				pointStub = sinon.stub(browser.pack.plugins.outflux, "point");
 
-//				githubEvent(
-//					{
-//						"X-GitHub-Delivery" : "auniqueid",
-//						"X-GitHub-Event"    : "pull_request",
-//						"X-Hub-Signature"   : sign(payload)
-//					},
-//					payload
-//				)
-//				.then(function (_response_) {
-//					response = _response_;
-//				})
-//				.nodeify(done);
-//			});
+				githubEvent(
+					{
+						"X-GitHub-Delivery" : "auniqueid",
+						"X-GitHub-Event"    : "pull_request",
+						"X-Hub-Signature"   : sign(payload)
+					},
+					payload
+				)
+				.then(function (_response_) {
+					response = _response_;
+				})
+				.nodeify(done);
+			});
 
-//			it("responds with code 200", function (done) {
-//				expect(response.statusCode, "bad status").to.equal(200);
-//				done();
-//			});
+			it("responds with code 200", function (done) {
+				expect(response.statusCode, "bad status").to.equal(200);
+				done();
+			});
 
-//			it("creates a new event", function (done) {
-//				expect(pointStub.callCount, "no event").to.equal(1);
-//				expect(
-//					pointStub.calledWith("github", sinon.match.object),
-//					"payload"
-//				).to.be.true;
+			it("creates a new event", function (done) {
+				expect(pointStub.callCount, "no event").to.equal(1);
+				expect(
+					pointStub.calledWith("github", sinon.match.object),
+					"payload"
+				).to.be.true;
 
-//				done();
-//			});
-//		});
+				done();
+			});
+		});
 
 		describe("failing to parse the incoming payload", function () {
 			var response;

@@ -7,7 +7,6 @@ var sinon        = require("sinon");
 var utilities    = require("../lib/utilities");
 
 describe("The utilities plugin", function () {
-
 	it("has a name", function (done) {
 		expect(utilities.register.attributes, "plugin name")
 		.to.have.property("name", "utilities");

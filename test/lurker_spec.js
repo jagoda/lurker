@@ -5,7 +5,6 @@ var lurker  = require("../lib/lurker");
 var nock    = require("nock");
 
 describe("The lurker plugin", function () {
-
 	it("has a name", function (done) {
 		expect(lurker.register.attributes, "name")
 		.to.have.property("name", "lurker");
