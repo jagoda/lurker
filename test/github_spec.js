@@ -2,19 +2,13 @@
 var Browser     = require("zombie");
 var crypto      = require("crypto");
 var Environment = require("apparition").Environment;
+var expect      = require("chai").expect;
 var github      = require("../lib/github");
 var Hapi        = require("hapi");
-var Lab         = require("lab");
 var Nipple      = require("nipple");
 var nock        = require("nock");
 var sinon       = require("sinon");
 var util        = require("util");
-
-var after    = Lab.after;
-var before   = Lab.before;
-var describe = Lab.describe;
-var expect   = Lab.expect;
-var it       = Lab.test;
 
 describe("The github plugin", function () {
 

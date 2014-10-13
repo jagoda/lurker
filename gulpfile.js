@@ -1,8 +1,9 @@
 "use strict";
 var fs       = require("fs");
 var gulp     = require("gulp");
+var istanbul = require("gulp-istanbul");
 var jshint   = require("gulp-jshint");
-var lab      = require("gulp-lab");
+var mocha    = require("gulp-mocha");
 var path     = require("path");
 var stylish  = require("jshint-stylish");
 var _        = require("lodash");
@@ -32,11 +33,6 @@ function runJshint (options, files) {
 	.pipe(jshint.reporter("fail"));
 }
 
-gulp.task("coverage", function () {
-	gulp.src(TEST_FILES)
-	.pipe(lab("-p -r html -o coverage.html"));
-});
-
 gulp.task("default", [ "lint", "test" ]);
 
 gulp.task("lint", [ "lint-src", "lint-test" ]);
@@ -50,10 +46,15 @@ gulp.task("lint-test", function () {
 });
 
 gulp.task("test", [ "lint" ], function (done) {
-	gulp.src(TEST_FILES)
-	.pipe(lab("-p -t 100"))
-	.on("error", done)
-	.on("end", done);
+	gulp.src(SOURCE_FILES)
+	.pipe(istanbul())
+	.on("finish", function () {
+		gulp.src(TEST_FILES)
+		.pipe(mocha())
+		.pipe(istanbul.writeReports())
+		.on("end", done)
+		.on("error", done);
+	});
 });
 
 // This ensures reasonable behavior for CI systems.

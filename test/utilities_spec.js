@@ -1,15 +1,10 @@
 "use strict";
 var EventEmitter = require("events").EventEmitter;
+var expect       = require("chai").expect;
 var Hapi         = require("hapi");
-var Lab          = require("lab");
 var Q            = require("q");
 var sinon        = require("sinon");
 var utilities    = require("../lib/utilities");
-
-var before    = Lab.before;
-var describe  = Lab.experiment;
-var expect    = Lab.expect;
-var it        = Lab.test;
 
 describe("The utilities plugin", function () {
 

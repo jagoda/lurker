@@ -1,18 +1,12 @@
 "use strict";
+var expect    = require("chai").expect;
 var Hapi      = require("hapi");
-var Lab       = require("lab");
 var metrics   = require("../lib/metrics");
 var Nipple    = require("nipple");
 var nock      = require("nock");
 var Q         = require("q");
 var sinon     = require("sinon");
 var utilities = require("../lib/utilities");
-
-var after    = Lab.after;
-var before   = Lab.before;
-var describe = Lab.describe;
-var expect   = Lab.expect;
-var it       = Lab.it;
 
 describe("The metrics plugin", function () {
 

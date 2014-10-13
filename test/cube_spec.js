@@ -1,14 +1,8 @@
 "use strict";
 var Browser = require("zombie");
 var cube    = require("../lib/cube");
-var Lab     = require("lab");
+var expect  = require("chai").expect;
 var nock    = require("nock");
-
-var after    = Lab.after;
-var before   = Lab.before;
-var describe = Lab.describe;
-var expect   = Lab.expect;
-var it       = Lab.it;
 
 describe("The cube plugin", function () {
 

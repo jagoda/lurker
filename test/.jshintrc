@@ -1,3 +1,10 @@
 {
-	"expr" : true
+	"expr" : true,
+
+	"globals" : {
+		"after"    : false,
+		"before"   : false,
+		"describe" : false,
+		"it"       : false
+	}
 }

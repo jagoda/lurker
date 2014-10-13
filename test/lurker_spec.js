@@ -1,14 +1,8 @@
 "use strict";
 var Browser = require("zombie");
-var Lab     = require("lab");
+var expect  = require("chai").expect;
 var lurker  = require("../lib/lurker");
 var nock    = require("nock");
-
-var after    = Lab.after;
-var before   = Lab.before;
-var describe = Lab.describe;
-var expect   = Lab.expect;
-var it       = Lab.it;
 
 describe("The lurker plugin", function () {
 

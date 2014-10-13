@@ -2,13 +2,9 @@
 var Browser     = require("zombie");
 var Environment = require("apparition").Environment;
 var Good        = require("good");
-var Lab         = require("lab");
 var mummy       = require("mummy");
 var path        = require("path");
 var sinon       = require("sinon");
-
-var after  = Lab.after;
-var before = Lab.before;
 
 var environment = new Environment();
 
