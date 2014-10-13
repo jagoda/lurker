@@ -1,4 +1,5 @@
 "use strict";
+var enforcer = require("gulp-istanbul-enforcer");
 var fs       = require("fs");
 var gulp     = require("gulp");
 var istanbul = require("gulp-istanbul");
@@ -33,6 +34,23 @@ function runJshint (options, files) {
 	.pipe(jshint.reporter("fail"));
 }
 
+gulp.task("coverage", [ "test-unit" ], function () {
+	var options = {
+		thresholds : {
+			statements : 100,
+			branches   : 100,
+			lines      : 100,
+			functions  : 100
+		},
+		coverageDirectory : "coverage",
+		rootDirectory : ""
+	};
+
+	return gulp
+	.src(".")
+	.pipe(enforcer(options));
+});
+
 gulp.task("default", [ "lint", "test" ]);
 
 gulp.task("lint", [ "lint-src", "lint-test" ]);
@@ -45,7 +63,9 @@ gulp.task("lint-test", function () {
 	return runJshint(jshintOptions(path.join(__dirname, "test")), TEST_FILES);
 });
 
-gulp.task("test", [ "lint" ], function (done) {
+gulp.task("test", [ "lint", "test-unit", "coverage" ]);
+
+gulp.task("test-unit", [ "lint" ], function (done) {
 	gulp.src(SOURCE_FILES)
 	.pipe(istanbul())
 	.on("finish", function () {
