@@ -6,8 +6,7 @@
 			"url" : "http://db.lurker.bwincubator.com/db/lurker/series?u=lurker&p=passw0rd"
 		},
 		"./github" : {},
-		"./lurker" : {},
-		"./utilities" : {}
+		"./lurker" : {}
 	},
 	"servers" : [
 		{
