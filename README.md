@@ -26,7 +26,7 @@ The `GITHUB_SECRET` environment variable is required in order for `lurker` to
 verify webhook requests. The `GITHUB_ORGANIZATION` environment variable
 specifies which GitHub organization's members will be allowed to access the
 status UI. The port that the server listens on can also be configured using the
-`PORT` environment variable. By default `lurker` listens on 8080.
+`PORT` environment variable.
 
 ## Supported Webhooks
 
