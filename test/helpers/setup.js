@@ -16,9 +16,7 @@ before(function (done) {
 	Browser.default.silent = true;
 
 	// Squelch logging for the test run...
-	sinon.stub(Good, "register", function (plugin, options, done) {
-		done();
-	});
+	sinon.stub(Good, "register").callsArg(2);
 
 	mummy.extend(path.join(__dirname, "..", "..", "lib", "server.json"))
 	.nodeify(done);
