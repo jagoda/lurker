@@ -1,7 +1,6 @@
 "use strict";
 var Browser     = require("zombie");
 var Crypto      = require("crypto");
-var Environment = require("apparition").Environment;
 var expect      = require("chai").expect;
 var GitHub      = require("../lib/github");
 var Hapi        = require("hapi");
@@ -10,52 +9,39 @@ var Sinon       = require("sinon");
 var Util        = require("util");
 
 describe("The github plugin", function () {
-	before(function (done) {
+	before(function () {
 		Nock.disableNetConnect();
-		done();
 	});
 
-	after(function (done) {
+	after(function () {
 		Nock.enableNetConnect();
-		done();
 	});
 
-	it("has a name", function (done) {
+	it("has a name", function () {
 		expect(GitHub.register.attributes, "plugin name")
 		.to.have.property("name", "github");
-
-		done();
 	});
 
 	describe("without a secret", function () {
-		var consoleStub;
-		var environment;
+		var log;
 
 		before(function (done) {
-			// Supress console output.
-			consoleStub = Sinon.stub(console, "error");
-			environment = new Environment();
-			environment.delete("SECRET");
-			done();
-		});
-
-		after(function (done) {
-			consoleStub.restore();
-			environment.restore();
-			done();
-		});
-
-		it("fails to start", function (done) {
 			var server = new Hapi.Server();
 
-			server.pack.register(GitHub, function (error) {
-				expect(error, "no error").to.be.an.instanceOf(Error);
+			log = Sinon.stub(server.pack, "log");
+			server.pack.register(GitHub, {}, done);
+		});
 
-				expect(error.message, "bad message")
-				.to.match(/secret is required/i);
+		after(function () {
+			log.restore();
+		});
 
-				done();
-			});
+		it("logs a warning message", function () {
+			expect(log.callCount, "log").to.equal(1);
+			expect(log.firstCall.args[0], "tags").to.include("warning");
+
+			expect(log.firstCall.args[1], "message")
+			.to.match(/default secret/i);
 		});
 	});
 });
