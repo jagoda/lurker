@@ -12,6 +12,8 @@ var environment = new Environment();
 before(function (done) {
 	Browser.default.silent = true;
 
+	// Badge requires a GitHub organization.
+	environment.set("GITHUB_ORGANIZATION", "allthepeoples");
 	// Set explicitly to simulate a real scenario.
 	environment.set("GITHUB_SECRET", GitHub.DEFAULT_SECRET);
 	// Outflux requires a URL value.

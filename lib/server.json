@@ -8,7 +8,11 @@
 		"./github" : {
 			"secret" : "$env.GITHUB_SECRET"
 		},
-		"./lurker" : {}
+		"./lurker" : {
+			"github" : {
+				"organization" : "$env.GITHUB_ORGANIZATION"
+			}
+		}
 	},
 	"servers" : [
 		{
