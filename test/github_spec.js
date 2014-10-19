@@ -22,6 +22,11 @@ describe("The github plugin", function () {
 		.to.have.property("name", "github");
 	});
 
+	it("has a default secret", function () {
+		expect(GitHub, "secret")
+		.to.have.property("DEFAULT_SECRET", "lurkersecret");
+	});
+
 	describe("without a secret", function () {
 		var log;
 
@@ -49,21 +54,17 @@ describe("The github plugin", function () {
 describe("The /github webhook", function () {
 	var DIGEST        = "sha1";
 	var DIGEST_FORMAT = "hex";
-	var SECRET;
+	var SECRET        = GitHub.DEFAULT_SECRET;
 
 	var browser;
 
-	before(function (done) {
-		SECRET = process.env.SECRET;
-
+	before(function () {
 		Nock.disableNetConnect();
 		browser = new Browser();
-		done();
 	});
 
-	after(function (done) {
+	after(function () {
 		Nock.enableNetConnect();
-		done();
 	});
 
 	describe("receiving a github event", function () {
@@ -140,19 +141,16 @@ describe("The /github webhook", function () {
 				.nodeify(done);
 			});
 
-			it("responds with code 200", function (done) {
+			it("responds with code 200", function () {
 				expect(response.statusCode, "bad status").to.equal(200);
-				done();
 			});
 
-			it("creates a new event", function (done) {
+			it("creates a new event", function () {
 				expect(pointStub.callCount, "no event").to.equal(1);
 				expect(
 					pointStub.calledWith("github", Sinon.match.object),
 					"payload"
 				).to.be.true;
-
-				done();
 			});
 		});
 
@@ -175,9 +173,8 @@ describe("The /github webhook", function () {
 				.nodeify(done);
 			});
 
-			it("responds with code 400", function (done) {
+			it("responds with code 400", function () {
 				expect(response.statusCode, "bad status").to.equal(400);
-				done();
 			});
 		});
 	});

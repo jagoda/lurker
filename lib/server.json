@@ -5,7 +5,9 @@
 		"outflux" : {
 			"url" : "http://db.lurker.bwincubator.com/db/lurker/series?u=lurker&p=passw0rd"
 		},
-		"./github" : {},
+		"./github" : {
+			"secret" : "$env.GITHUB_SECRET"
+		},
 		"./lurker" : {}
 	},
 	"servers" : [
