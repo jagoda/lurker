@@ -1,27 +1,27 @@
 "use strict";
 var Browser     = require("zombie");
-var crypto      = require("crypto");
+var Crypto      = require("crypto");
 var Environment = require("apparition").Environment;
 var expect      = require("chai").expect;
-var github      = require("../lib/github");
+var GitHub      = require("../lib/github");
 var Hapi        = require("hapi");
-var nock        = require("nock");
-var sinon       = require("sinon");
-var util        = require("util");
+var Nock        = require("nock");
+var Sinon       = require("sinon");
+var Util        = require("util");
 
 describe("The github plugin", function () {
 	before(function (done) {
-		nock.disableNetConnect();
+		Nock.disableNetConnect();
 		done();
 	});
 
 	after(function (done) {
-		nock.enableNetConnect();
+		Nock.enableNetConnect();
 		done();
 	});
 
 	it("has a name", function (done) {
-		expect(github.register.attributes, "plugin name")
+		expect(GitHub.register.attributes, "plugin name")
 		.to.have.property("name", "github");
 
 		done();
@@ -33,7 +33,7 @@ describe("The github plugin", function () {
 
 		before(function (done) {
 			// Supress console output.
-			consoleStub = sinon.stub(console, "error");
+			consoleStub = Sinon.stub(console, "error");
 			environment = new Environment();
 			environment.delete("SECRET");
 			done();
@@ -48,7 +48,7 @@ describe("The github plugin", function () {
 		it("fails to start", function (done) {
 			var server = new Hapi.Server();
 
-			server.pack.register(github, function (error) {
+			server.pack.register(GitHub, function (error) {
 				expect(error, "no error").to.be.an.instanceOf(Error);
 
 				expect(error.message, "bad message")
@@ -70,13 +70,13 @@ describe("The /github webhook", function () {
 	before(function (done) {
 		SECRET = process.env.SECRET;
 
-		nock.disableNetConnect();
+		Nock.disableNetConnect();
 		browser = new Browser();
 		done();
 	});
 
 	after(function (done) {
-		nock.enableNetConnect();
+		Nock.enableNetConnect();
 		done();
 	});
 
@@ -101,10 +101,10 @@ describe("The /github webhook", function () {
 		}
 
 		function sign (payload) {
-			var hmac = crypto.createHmac(DIGEST, SECRET);
+			var hmac = Crypto.createHmac(DIGEST, SECRET);
 
 			hmac.update(payload);
-			return util.format("%s=%s", DIGEST, hmac.digest(DIGEST_FORMAT));
+			return Util.format("%s=%s", DIGEST, hmac.digest(DIGEST_FORMAT));
 		}
 
 		describe("with an invalid signature", function () {
@@ -138,7 +138,7 @@ describe("The /github webhook", function () {
 			before(function (done) {
 				var payload = JSON.stringify({ action : "opened" });
 
-				pointStub = sinon.stub(browser.pack.plugins.outflux, "point");
+				pointStub = Sinon.stub(browser.pack.plugins.outflux, "point");
 
 				githubEvent(
 					{
@@ -162,7 +162,7 @@ describe("The /github webhook", function () {
 			it("creates a new event", function (done) {
 				expect(pointStub.callCount, "no event").to.equal(1);
 				expect(
-					pointStub.calledWith("github", sinon.match.object),
+					pointStub.calledWith("github", Sinon.match.object),
 					"payload"
 				).to.be.true;
 
