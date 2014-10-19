@@ -4,11 +4,9 @@ var expect  = require("chai").expect;
 var Lurker  = require("../lib/lurker");
 
 describe("The lurker plugin", function () {
-	it("has a name", function (done) {
+	it("has a name", function () {
 		expect(Lurker.register.attributes, "name")
 		.to.have.property("name", "lurker");
-
-		done();
 	});
 });
 
