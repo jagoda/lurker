@@ -4,7 +4,7 @@
   "description": "Workflow analytics.",
   "scripts": {
     "coverage": "gulp coverage && xdg-open coverage.html || open coverage.html",
-    "start": "hapi -c lib/server.json -p lib",
+    "start": "node lib/server.js",
     "test": "gulp"
   },
   "repository": {

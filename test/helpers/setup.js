@@ -1,15 +1,15 @@
 "use strict";
 var Browser     = require("zombie");
 var Environment = require("apparition").Environment;
+var Hapi        = require("hapi");
 var GitHub      = require("../../lib/github");
 var Good        = require("good");
-var mummy       = require("mummy");
-var path        = require("path");
-var sinon       = require("sinon");
+var Mummy       = require("mummy");
+var Sinon       = require("sinon");
 
 var environment = new Environment();
 
-before(function (done) {
+before(function () {
 	Browser.default.silent = true;
 
 	// Badge requires a GitHub organization.
@@ -22,14 +22,16 @@ before(function (done) {
 		"https://example.com/db/test/series?u=foo&p=bar"
 	);
 
+	// Disable server start.
+	Sinon.stub(Hapi.Server.prototype, "start");
 	// Squelch logging for the test run...
-	sinon.stub(Good, "register").callsArg(2);
+	Sinon.stub(Good, "register").callsArg(2);
 
-	mummy.extend(path.join(__dirname, "..", "..", "lib", "server.json"))
-	.nodeify(done);
+	Browser.extend(new Mummy(require("../../lib/server")));
 });
 
 after(function () {
 	environment.restore();
 	Good.register.restore();
+	Hapi.Server.prototype.start.restore();
 });
