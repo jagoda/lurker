@@ -3,7 +3,7 @@
 		"badge" : {},
 		"good" : {},
 		"outflux" : {
-			"url" : "http://db.lurker.bwincubator.com/db/lurker/series?u=lurker&p=passw0rd"
+			"url" : "$env.INFLUXDB_URL"
 		},
 		"./github" : {
 			"secret" : "$env.GITHUB_SECRET"

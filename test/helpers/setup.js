@@ -11,8 +11,14 @@ var environment = new Environment();
 
 before(function (done) {
 	Browser.default.silent = true;
+
 	// Set explicitly to simulate a real scenario.
 	environment.set("GITHUB_SECRET", GitHub.DEFAULT_SECRET);
+	// Outflux requires a URL value.
+	environment.set(
+		"INFLUXDB_URL",
+		"https://example.com/db/test/series?u=foo&p=bar"
+	);
 
 	// Squelch logging for the test run...
 	sinon.stub(Good, "register").callsArg(2);
