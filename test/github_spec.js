@@ -34,7 +34,7 @@ describe("The github plugin", function () {
 			var server = new Hapi.Server();
 
 			log = Sinon.stub(server.pack, "log");
-			server.pack.register(GitHub, {}, done);
+			server.pack.register(GitHub, done);
 		});
 
 		after(function () {
@@ -47,6 +47,31 @@ describe("The github plugin", function () {
 
 			expect(log.firstCall.args[1], "message")
 			.to.match(/default secret/i);
+		});
+	});
+
+	describe("with a secret", function () {
+		var log;
+
+		before(function (done) {
+			var server = new Hapi.Server();
+
+			log = Sinon.stub(server.pack, "log");
+			server.pack.register(
+				{
+					plugin  : GitHub,
+					options : { secret : "ascret" }
+				},
+				done
+			);
+		});
+
+		after(function () {
+			log.restore();
+		});
+
+		it("does not log a warning message", function () {
+			expect(log.callCount, "log").to.equal(0);
 		});
 	});
 });
