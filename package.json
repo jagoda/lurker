@@ -37,7 +37,7 @@
   "dependencies": {
     "badge": "^1.0.3",
     "good": "^2.2.0",
-    "hapi": "^7.0.0",
+    "hapi": "^7.1.1",
     "lodash": "^2.4.1",
     "mustache": "^0.8.2",
     "nipple": "^2.5.3",

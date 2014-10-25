@@ -9,12 +9,42 @@ var Q       = require("q");
 var Sinon   = require("sinon");
 
 describe("The Lurker plugin", function () {
+	function expectSecurity (log, enabled) {
+		expect(
+			log.calledWith(
+				[ "warning", "lurker" ],
+				Sinon.match(/security is disabled/i)
+			),
+			"log"
+		).to.equal(enabled);
+	}
+
+	function startServer (server, browser, options) {
+		return Q.ninvoke(
+			server.pack,
+			"register",
+			[
+				{
+					plugin : Badge
+				},
+				{
+					plugin  : Lurker,
+					options : options || null
+				}
+			]
+		)
+		.then(function () {
+			Mummy.embalm(server, browser);
+			return browser.visit("/");
+		});
+	}
+
 	it("has a name", function () {
 		expect(Lurker.register.attributes, "name")
 		.to.have.property("name", "lurker");
 	});
 
-	describe("without authentication configured", function () {
+	describe("without a valid authentication configuration", function () {
 		var browser;
 		var log;
 
@@ -24,39 +54,11 @@ describe("The Lurker plugin", function () {
 			browser = new Browser();
 			log     = Sinon.stub(server.pack, "log");
 
-			Q.ninvoke(
-				server.pack,
-				"register",
-				[
-					{
-						plugin : Badge
-					},
-					{
-						plugin  : Lurker,
-						options : {
-							github : {}
-						}
-					}
-				]
-			)
-			.then(function () {
-				Mummy.embalm(server, browser);
-				return browser.visit("/");
-			})
-			.fail(function () {
-				// Grafana likes to throw errors...
-			})
-			.nodeify(done);
+			startServer(server, browser).finally(done);
 		});
 
 		it("logs a warning message", function () {
-			expect(
-				log.calledWith(
-					[ "warning", "lurker" ],
-					Sinon.match(/security/i)
-				),
-				"log"
-			).to.be.true;
+			expectSecurity(log, true);
 		});
 
 		it("allows insecure requests", function () {
@@ -74,41 +76,20 @@ describe("The Lurker plugin", function () {
 			browser = new Browser();
 			log     = Sinon.stub(server.pack, "log");
 
-			Q.ninvoke(
-				server.pack,
-				"register",
-				[
-					{
-						plugin : Badge
-					},
-					{
-						plugin  : Lurker,
-						options : {
-							github : {
-								organization : "octocats"
-							}
-						}
+			startServer(
+				server,
+				browser,
+				{
+					github : {
+						organization : "octocats"
 					}
-				]
+				}
 			)
-			.then(function () {
-				Mummy.embalm(server, browser);
-				return browser.visit("/");
-			})
-			.fail(function () {
-				// Grafana likes to throw errors...
-			})
-			.nodeify(done);
+			.finally(done);
 		});
 
 		it("does not log a warning message", function () {
-			expect(
-				log.calledWith(
-					[ "warning", "lurker" ],
-					Sinon.match(/security/i)
-				),
-				"log"
-			).to.be.false;
+			expectSecurity(log, false);
 		});
 
 		it("does not allow insecure requests", function () {
@@ -123,7 +104,7 @@ describe("The Lurker status page", function () {
 	before(function (done) {
 		browser = new Browser();
 		// Grafana likes to throw errors.
-		browser.visit("/").fin(done);
+		browser.visit("/").finally(done);
 	});
 
 	it("shows the Grafana dashboard", function () {
