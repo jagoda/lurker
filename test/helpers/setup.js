@@ -16,6 +16,11 @@ before(function () {
 	// Squelch logging for the test run...
 	Sinon.stub(Good, "register").callsArg(2);
 
+	// Configure security.
+	environment.set("github_client_id", "aclientid");
+	environment.set("github_client_secret", "aclientsecret");
+	environment.set("github_organization", "octocats");
+
 	Browser.extend(new Mummy(require("../../lib/server")));
 });
 

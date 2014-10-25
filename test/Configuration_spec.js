@@ -90,6 +90,28 @@ describe("A configuration helper", function () {
 
 	describeOption({
 		defaultValue : null,
+		description  : "GitHub client ID",
+		key          : "github_client_id",
+		testValue    : "aclientapplication",
+
+		getter : function () {
+			return configuration.github.client.id();
+		}
+	});
+
+	describeOption({
+		defaultValue : null,
+		description  : "GitHub client secret",
+		key          : "github_client_secret",
+		testValue    : "asuperdupersecret",
+
+		getter : function () {
+			return configuration.github.client.secret();
+		}
+	});
+
+	describeOption({
+		defaultValue : null,
 		description  : "GitHub organization",
 		key          : "github_organization",
 		testValue    : "octocats",

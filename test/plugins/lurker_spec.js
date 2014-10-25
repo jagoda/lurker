@@ -49,7 +49,7 @@ describe("The Lurker plugin", function () {
 		)
 		.then(function () {
 			Mummy.embalm(server, browser);
-			return browser.visit("/");
+			return browser.visit("/index.html");
 		});
 	}
 
@@ -145,8 +145,11 @@ describe("The Lurker plugin", function () {
 				browser,
 				{
 					github : {
-						clientId     : "clientId",
-						clientSecret : "clientSecret",
+						client : {
+							id     : "clientId",
+							secret : "clientSecret",
+						},
+
 						organization : "octocats"
 					}
 				}
@@ -164,17 +167,50 @@ describe("The Lurker plugin", function () {
 	});
 });
 
-describe("The Lurker status page", function () {
+describe("The Lurker landing page", function () {
+	var GRAFANA_TITLE = /grafana/i;
+	var LOGIN_TITLE   = /welcome/i;
+
 	var browser;
 
-	before(function (done) {
+	before(function () {
 		browser = new Browser();
-		// Grafana likes to throw errors.
-		browser.visit("/").finally(done);
 	});
 
-	it("shows the Grafana dashboard", function () {
-		expect(browser.text("title"), "title").to.match(/grafana/i);
+	describe("before logging in", function () {
+		before(function (done) {
+			// Grafana likes to throw errors.
+			browser.visit("/").finally(done);
+		});
+
+		it("does not show the Grafana dashboard", function () {
+			expect(browser.text("title"), "title").not.to.match(GRAFANA_TITLE);
+		});
+
+		it("shows a public login prompt", function () {
+			expect(browser.text("title"), "title").to.match(LOGIN_TITLE);
+		});
+	});
+
+	describe("after logging in", function () {
+		before(function (done) {
+			// TODO: this should probably be something more real...
+			browser.credentials.set({});
+			// Grafana likes to throw errors.
+			browser.visit("/").finally(done);
+		});
+
+		after(function () {
+			browser.credentials.clear();
+		});
+
+		it("shows the Grafana dashboard", function () {
+			expect(browser.text("title"), "title").to.match(GRAFANA_TITLE);
+		});
+
+		it("does not show a login prompt", function () {
+			expect(browser.text("title"), "title").not.to.match(LOGIN_TITLE);
+		});
 	});
 });
 
@@ -183,6 +219,9 @@ describe("The Grafana configuration", function () {
 
 	before(function (done) {
 		var browser = new Browser();
+
+		// TODO: this should probably be something more real...
+		browser.credentials.set({});
 
 		browser.http({
 			method : "GET",
