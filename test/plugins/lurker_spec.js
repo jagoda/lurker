@@ -9,6 +9,16 @@ var Q       = require("q");
 var Sinon   = require("sinon");
 
 describe("The Lurker plugin", function () {
+	function expectPassword (log, present) {
+		expect(
+			log.calledWith(
+				[ "warning", "lurker" ],
+				Sinon.match(/cookie password/i)
+			),
+			"log"
+		).to.equal(!present);
+	}
+
 	function expectSecurity (log, enabled) {
 		expect(
 			log.calledWith(
@@ -29,7 +39,7 @@ describe("The Lurker plugin", function () {
 				},
 				{
 					plugin  : Lurker,
-					options : options || null
+					options : options
 				}
 			]
 		)
@@ -42,6 +52,48 @@ describe("The Lurker plugin", function () {
 	it("has a name", function () {
 		expect(Lurker.register.attributes, "name")
 		.to.have.property("name", "lurker");
+	});
+
+	describe("with a cookie password", function () {
+		var browser;
+		var log;
+
+		before(function (done) {
+			var server = new Hapi.Server();
+
+			browser = new Browser();
+			log     = Sinon.stub(server.pack, "log");
+
+			startServer(
+				server,
+				browser,
+				{
+					password : "abetterpassword"
+				}
+			).finally(done);
+		});
+
+		it("does not log a warning message", function () {
+			expectPassword(log, true);
+		});
+	});
+
+	describe("without a cookie password", function () {
+		var browser;
+		var log;
+
+		before(function (done) {
+			var server = new Hapi.Server();
+
+			browser = new Browser();
+			log     = Sinon.stub(server.pack, "log");
+
+			startServer(server, browser).finally(done);
+		});
+
+		it("logs a warning message", function () {
+			expectPassword(log, false);
+		});
 	});
 
 	describe("without a valid authentication configuration", function () {
@@ -66,7 +118,7 @@ describe("The Lurker plugin", function () {
 		});
 	});
 
-	describe("with authentication configured", function () {
+	describe("with a valid authentication configuration", function () {
 		var browser;
 		var log;
 
