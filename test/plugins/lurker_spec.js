@@ -9,6 +9,9 @@ var Mummy   = require("mummy");
 var Q       = require("q");
 var Sinon   = require("sinon");
 
+// TODO: this should probably be something more real...
+var CREDENTIALS = {};
+
 describe("The Lurker plugin", function () {
 	function expectPassword (log, present) {
 		expect(
@@ -194,8 +197,7 @@ describe("The Lurker landing page", function () {
 
 	describe("after logging in", function () {
 		before(function (done) {
-			// TODO: this should probably be something more real...
-			browser.credentials.set({});
+			browser.credentials.set(CREDENTIALS);
 			// Grafana likes to throw errors.
 			browser.visit("/").finally(done);
 		});
@@ -214,14 +216,81 @@ describe("The Lurker landing page", function () {
 	});
 });
 
+describe("The Lurker login page", function () {
+	var SESSION_COOKIE = "sid";
+
+	var browser;
+
+	before(function () {
+		browser = new Browser();
+	});
+
+	describe("before logging in", function () {
+		var GITHUB_LOGIN = "https://github.com/login/oauth/authorize";
+
+		function githubHandler (request, next) {
+			if (0 === request.url.indexOf(GITHUB_LOGIN)) {
+				next(null, {
+					statusCode : 200
+				});
+			}
+			else {
+				next();
+			}
+		}
+
+		before(function (done) {
+			browser.resources.addHandler(githubHandler);
+			browser.visit("/login").nodeify(done);
+		});
+
+		after(function () {
+			var index = browser.resources.pipeline.indexOf(githubHandler);
+			// Remove the GitHub handler.
+			browser.resources.pipeline.splice(index, 1);
+		});
+
+		it("redirects to the GitHub login page", function () {
+			expect(browser.redirected, "redirected").to.be.true;
+			expect(browser.url, "URL").to.contain(GITHUB_LOGIN);
+		});
+
+		it("does not create the session cookie", function () {
+			expect(browser.getCookie(SESSION_COOKIE), "cookie").to.be.null;
+		});
+	});
+
+	describe("after logging in", function () {
+		before(function (done) {
+			browser.credentials.set(CREDENTIALS);
+			// Grafana likes to throw errors.
+			browser.visit("/login").finally(done);
+		});
+
+		after(function () {
+			browser.credentials.clear();
+			browser.deleteCookie(SESSION_COOKIE);
+		});
+
+		it("redirects to the Lurker landing page", function () {
+			expect(browser.redirected, "redirected").to.be.true;
+			expect(browser.url, "URL").to.contain(browser.site);
+			expect(browser.url, "login").not.to.contain("/login");
+		});
+
+		it("creates the session cookie", function () {
+			expect(browser.getCookie(SESSION_COOKIE), "cookie").not.to.be.null;
+		});
+	});
+});
+
 describe("The Grafana configuration", function () {
 	var settings;
 
 	before(function (done) {
 		var browser = new Browser();
 
-		// TODO: this should probably be something more real...
-		browser.credentials.set({});
+		browser.credentials.set(CREDENTIALS);
 
 		browser.http({
 			method : "GET",
