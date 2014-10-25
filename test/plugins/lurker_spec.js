@@ -1,6 +1,7 @@
 "use strict";
-var Badge   = require("badge");
+var Bell    = require("bell");
 var Browser = require("zombie");
+var Cookie  = require("hapi-auth-cookie");
 var expect  = require("chai").expect;
 var Hapi    = require("hapi");
 var Lurker  = require("../../lib/plugins/lurker");
@@ -35,7 +36,10 @@ describe("The Lurker plugin", function () {
 			"register",
 			[
 				{
-					plugin : Badge
+					plugin : Bell
+				},
+				{
+					plugin : Cookie
 				},
 				{
 					plugin  : Lurker,
@@ -106,7 +110,15 @@ describe("The Lurker plugin", function () {
 			browser = new Browser();
 			log     = Sinon.stub(server.pack, "log");
 
-			startServer(server, browser).finally(done);
+			startServer(
+				server,
+				browser,
+				{
+					github : {
+						organization : "octocats"
+					}
+				}
+			).finally(done);
 		});
 
 		it("logs a warning message", function () {
@@ -133,6 +145,8 @@ describe("The Lurker plugin", function () {
 				browser,
 				{
 					github : {
+						clientId     : "clientId",
+						clientSecret : "clientSecret",
 						organization : "octocats"
 					}
 				}
