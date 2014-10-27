@@ -1,14 +1,15 @@
 "use strict";
-var Bell        = require("bell");
-var Browser     = require("zombie");
-var Cookie      = require("hapi-auth-cookie");
-var expect      = require("chai").expect;
-var Hapi        = require("hapi");
-var Lurker      = require("../../lib/plugins/lurker");
-var Mummy       = require("mummy");
-var Q           = require("q");
-var Sinon       = require("sinon");
-var URL         = require("url");
+var Bell          = require("bell");
+var Browser       = require("zombie");
+var Configuration = require("../../lib/Configuration");
+var Cookie        = require("hapi-auth-cookie");
+var expect        = require("chai").expect;
+var Hapi          = require("hapi");
+var Lurker        = require("../../lib/plugins/lurker");
+var Mummy         = require("mummy");
+var Q             = require("q");
+var Sinon         = require("sinon");
+var URL           = require("url");
 
 // TODO: this should probably be something more real...
 var CREDENTIALS = {};
@@ -238,6 +239,8 @@ describe("The Lurker login page", function () {
 		}
 
 		before(function (done) {
+			var configuration = new Configuration();
+
 			var server = new Hapi.Server(
 				null,
 				null,
@@ -256,11 +259,11 @@ describe("The Lurker login page", function () {
 				{
 					github : {
 						client : {
-							id     : process.env.GITHUB_CLIENT_ID,
-							secret : process.env.GITHUB_CLIENT_SECRET
+							id     : configuration.github.client.id(),
+							secret : configuration.github.client.secret()
 						},
 
-						organization : process.env.GITHUB_ORGANIZATION
+						organization : configuration.github.organization()
 					}
 				}
 			)
