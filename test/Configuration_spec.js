@@ -79,6 +79,17 @@ describe("A configuration helper", function () {
 
 	describeOption({
 		defaultValue : null,
+		description  : "server shared secret",
+		key          : "cookie_password",
+		testValue    : "foobar",
+
+		getter : function () {
+			return configuration.server.secret();
+		}
+	});
+
+	describeOption({
+		defaultValue : null,
 		description  : "server URL",
 		key          : "base_url",
 		testValue    : "http://example.com",
