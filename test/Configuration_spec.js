@@ -78,6 +78,17 @@ describe("A configuration helper", function () {
 	});
 
 	describeOption({
+		defaultValue : null,
+		description  : "server URL",
+		key          : "base_url",
+		testValue    : "http://example.com",
+
+		getter : function () {
+			return configuration.server.url();
+		}
+	});
+
+	describeOption({
 		defaultValue : "http://localhost:8086/db/lurker/series?u=lurker&p=test",
 		description  : "InfluxDB URL",
 		key          : "influxdb_url",

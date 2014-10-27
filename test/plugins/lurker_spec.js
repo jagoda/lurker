@@ -1,16 +1,40 @@
 "use strict";
-var Bell    = require("bell");
-var Browser = require("zombie");
-var Cookie  = require("hapi-auth-cookie");
-var expect  = require("chai").expect;
-var Hapi    = require("hapi");
-var Lurker  = require("../../lib/plugins/lurker");
-var Mummy   = require("mummy");
-var Q       = require("q");
-var Sinon   = require("sinon");
+var Bell        = require("bell");
+var Browser     = require("zombie");
+var Cookie      = require("hapi-auth-cookie");
+var expect      = require("chai").expect;
+var Hapi        = require("hapi");
+var Lurker      = require("../../lib/plugins/lurker");
+var Mummy       = require("mummy");
+var Q           = require("q");
+var Sinon       = require("sinon");
+var URL         = require("url");
 
 // TODO: this should probably be something more real...
 var CREDENTIALS = {};
+
+function startServer (server, browser, options) {
+	return Q.ninvoke(
+		server.pack,
+		"register",
+		[
+			{
+				plugin : Bell
+			},
+			{
+				plugin : Cookie
+			},
+			{
+				plugin  : Lurker,
+				options : options
+			}
+		]
+	)
+	.then(function () {
+		Mummy.embalm(server, browser);
+		return browser.visit("/index.html");
+	});
+}
 
 describe("The Lurker plugin", function () {
 	function expectPassword (log, present) {
@@ -31,29 +55,6 @@ describe("The Lurker plugin", function () {
 			),
 			"log"
 		).to.equal(enabled);
-	}
-
-	function startServer (server, browser, options) {
-		return Q.ninvoke(
-			server.pack,
-			"register",
-			[
-				{
-					plugin : Bell
-				},
-				{
-					plugin : Cookie
-				},
-				{
-					plugin  : Lurker,
-					options : options
-				}
-			]
-		)
-		.then(function () {
-			Mummy.embalm(server, browser);
-			return browser.visit("/index.html");
-		});
 	}
 
 	it("has a name", function () {
@@ -219,14 +220,11 @@ describe("The Lurker landing page", function () {
 describe("The Lurker login page", function () {
 	var SESSION_COOKIE = "sid";
 
-	var browser;
-
-	before(function () {
-		browser = new Browser();
-	});
-
 	describe("before logging in", function () {
+		var BASE_URL     = "http://example.com";
 		var GITHUB_LOGIN = "https://github.com/login/oauth/authorize";
+
+		var browser;
 
 		function githubHandler (request, next) {
 			if (0 === request.url.indexOf(GITHUB_LOGIN)) {
@@ -240,8 +238,38 @@ describe("The Lurker login page", function () {
 		}
 
 		before(function (done) {
+			var server = new Hapi.Server(
+				null,
+				null,
+				{
+					location : BASE_URL
+				}
+			);
+
+			browser = new Browser();
 			browser.resources.addHandler(githubHandler);
-			browser.visit("/login").nodeify(done);
+			browser.credentials.set(CREDENTIALS);
+
+			startServer(
+				server,
+				browser,
+				{
+					github : {
+						client : {
+							id     : process.env.GITHUB_CLIENT_ID,
+							secret : process.env.GITHUB_CLIENT_SECRET
+						},
+
+						organization : process.env.GITHUB_ORGANIZATION
+					}
+				}
+			)
+			// Grafana likes to thro errors...
+			.fail(function () {
+				browser.credentials.clear();
+				return browser.visit("/login");
+			})
+			.nodeify(done);
 		});
 
 		after(function () {
@@ -255,13 +283,25 @@ describe("The Lurker login page", function () {
 			expect(browser.url, "URL").to.contain(GITHUB_LOGIN);
 		});
 
+		it("uses the base URL to compute the redirect URI", function () {
+			var url         = URL.parse(browser.url, true);
+			/* jshint -W106 */
+			var redirectUrl = url.query.redirect_uri;
+			/* jshint +W106 */
+
+			expect(redirectUrl, "url").to.contain(BASE_URL);
+		});
+
 		it("does not create the session cookie", function () {
 			expect(browser.getCookie(SESSION_COOKIE), "cookie").to.be.null;
 		});
 	});
 
 	describe("after logging in", function () {
+		var browser;
+
 		before(function (done) {
+			browser = new Browser();
 			browser.credentials.set(CREDENTIALS);
 			// Grafana likes to throw errors.
 			browser.visit("/login").finally(done);
