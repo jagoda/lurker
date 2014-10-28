@@ -305,8 +305,7 @@ describe("The Lurker login page", function () {
 		var TOKEN    = "atoken";
 		var USERNAME = "testy";
 
-		var AUTHORIZATION = "Basic " + (new Buffer(TOKEN + ":x-oauth-basic"))
-			.toString("base64");
+		var AUTHORIZATION = "token " + TOKEN;
 
 		var CREDENTIALS = {
 			profile : {
