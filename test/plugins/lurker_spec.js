@@ -200,6 +200,7 @@ describe("The Lurker landing page", function () {
 
 	describe("after logging in", function () {
 		before(function (done) {
+			this.timeout(5000);
 			browser.credentials.set(CREDENTIALS);
 			// Grafana likes to throw errors.
 			browser.visit("/").finally(done);
