@@ -39,6 +39,18 @@ function startServer (server, browser, options) {
 }
 
 describe("The Lurker plugin", function () {
+	function expectGitHubAuth (strategy, enabled) {
+		var matcher = Sinon.match({
+			provider : "github",
+			scope    : [ "read:org", "user:email" ]
+		});
+
+		expect(
+			strategy.calledWith("github", "bell", false, matcher),
+			"strategy"
+		).to.equal(enabled);
+	}
+
 	function expectPassword (log, present) {
 		expect(
 			log.calledWith(
@@ -109,12 +121,14 @@ describe("The Lurker plugin", function () {
 	describe("without a valid authentication configuration", function () {
 		var browser;
 		var log;
+		var strategy;
 
 		before(function (done) {
 			var server = new Hapi.Server();
 
-			browser = new Browser();
-			log     = Sinon.stub(server.pack, "log");
+			browser  = new Browser();
+			log      = Sinon.stub(server.pack, "log");
+			strategy = Sinon.spy(server.auth, "strategy");
 
 			startServer(
 				server,
@@ -131,6 +145,10 @@ describe("The Lurker plugin", function () {
 			expectSecurity(log, true);
 		});
 
+		it("does not use GitHub authentication", function () {
+			expectGitHubAuth(strategy, false);
+		});
+
 		it("allows insecure requests", function () {
 			expect(browser.statusCode, "status").to.equal(200);
 		});
@@ -139,12 +157,14 @@ describe("The Lurker plugin", function () {
 	describe("with a valid authentication configuration", function () {
 		var browser;
 		var log;
+		var strategy;
 
 		before(function (done) {
 			var server = new Hapi.Server();
 
-			browser = new Browser();
-			log     = Sinon.stub(server.pack, "log");
+			browser  = new Browser();
+			log      = Sinon.stub(server.pack, "log");
+			strategy = Sinon.spy(server.auth, "strategy");
 
 			startServer(
 				server,
@@ -165,6 +185,10 @@ describe("The Lurker plugin", function () {
 
 		it("does not log a warning message", function () {
 			expectSecurity(log, false);
+		});
+
+		it("uses GitHub authentication", function () {
+			expectGitHubAuth(strategy, true);
 		});
 
 		it("does not allow insecure requests", function () {
