@@ -7,6 +7,7 @@ var expect        = require("chai").expect;
 var Hapi          = require("hapi");
 var Lurker        = require("../../lib/plugins/lurker");
 var Mummy         = require("mummy");
+var Nock          = require("nock");
 var Q             = require("q");
 var Sinon         = require("sinon");
 var URL           = require("url");
@@ -301,28 +302,128 @@ describe("The Lurker login page", function () {
 	});
 
 	describe("after logging in", function () {
-		var browser;
+		var TOKEN    = "atoken";
+		var USERNAME = "testy";
 
-		before(function (done) {
-			browser = new Browser();
-			browser.credentials.set(CREDENTIALS);
-			// Grafana likes to throw errors.
-			browser.visit("/login").finally(done);
-		});
+		var CREDENTIALS = {
+			profile : {
+				username : USERNAME
+			},
 
-		after(function () {
-			browser.credentials.clear();
-			browser.deleteCookie(SESSION_COOKIE);
-		});
+			token : TOKEN
+		};
 
-		it("redirects to the Lurker landing page", function () {
+		var orgPath;
+
+		function expectLandingPage (browser) {
 			expect(browser.redirected, "redirected").to.be.true;
 			expect(browser.url, "URL").to.contain(browser.site);
 			expect(browser.url, "login").not.to.contain("/login");
+		}
+
+		function expectWarning (log, isExpected) {
+			expect(
+				log.calledWith(
+					[ "warning", "lurker" ],
+					Sinon.match(/organization/i)
+				),
+				"log"
+			).to.equal(isExpected);
+		}
+
+		function getOrg () {
+			return new Nock("https://api.github.com")
+			.matchHeader("Authorization", "Bearer " + TOKEN)
+			.get(orgPath);
+		}
+
+		before(function () {
+			var configuration = new Configuration();
+			orgPath = "/orgs/" + configuration.github.organization() +
+				"/members/" + USERNAME;
 		});
 
-		it("creates the session cookie", function () {
-			expect(browser.getCookie(SESSION_COOKIE), "cookie").not.to.be.null;
+		describe("with the correct organization", function () {
+			var browser;
+			var log;
+			var orgRequest;
+
+			before(function (done) {
+				browser = new Browser();
+
+				log = Sinon.stub(browser.pack, "log");
+
+				orgRequest = getOrg().reply(204);
+
+				browser.credentials.set(CREDENTIALS);
+				// Grafana likes to throw errors.
+				browser.visit("/login").finally(done);
+			});
+
+			after(function () {
+				browser.credentials.clear();
+				browser.deleteCookie(SESSION_COOKIE);
+				log.restore();
+				Nock.cleanAll();
+			});
+
+			it("checks organization membership", function () {
+				orgRequest.done();
+			});
+
+			it("redirects to the Lurker landing page", function () {
+				expectLandingPage(browser);
+			});
+
+			it("creates the session cookie", function () {
+				expect(browser.getCookie(SESSION_COOKIE), "cookie")
+				.not.to.be.null;
+			});
+
+			it("does not log a warning", function () {
+				expectWarning(log, false);
+			});
+		});
+
+		describe("with an incorrect organization", function () {
+			var browser;
+			var log;
+			var orgRequest;
+
+			before(function (done) {
+				browser = new Browser();
+
+				log = Sinon.stub(browser.pack, "log");
+
+				orgRequest = getOrg().reply(404);
+
+				browser.credentials.set(CREDENTIALS);
+				// Grafana likes to throw errors.
+				browser.visit("/login").finally(done);
+			});
+
+			after(function () {
+				browser.credentials.clear();
+				browser.deleteCookie(SESSION_COOKIE);
+				log.restore();
+				Nock.cleanAll();
+			});
+
+			it("checks organization membership", function () {
+				orgRequest.done();
+			});
+
+			it("redirects to the Lurker landing page", function () {
+				expectLandingPage(browser);
+			});
+
+			it("does not create the session cookie", function () {
+				expect(browser.getCookie(SESSION_COOKIE), "cookie").to.be.null;
+			});
+
+			it("logs a warning", function () {
+				expectWarning(log, true);
+			});
 		});
 	});
 });
