@@ -13,7 +13,7 @@ var Sinon         = require("sinon");
 var URL           = require("url");
 
 // TODO: this should probably be something more real...
-var CREDENTIALS = {};
+var CREDENTIALS     = {};
 
 function startServer (server, browser, options) {
 	return Q.ninvoke(
@@ -180,7 +180,7 @@ describe("The Lurker landing page", function () {
 	var browser;
 
 	before(function () {
-		browser = new Browser();
+		browser = new Browser({ runScripts : false });
 	});
 
 	describe("before logging in", function () {
@@ -200,7 +200,6 @@ describe("The Lurker landing page", function () {
 
 	describe("after logging in", function () {
 		before(function (done) {
-			this.timeout(5000);
 			browser.credentials.set(CREDENTIALS);
 			// Grafana likes to throw errors.
 			browser.visit("/").finally(done);
@@ -353,7 +352,7 @@ describe("The Lurker login page", function () {
 			var orgRequest;
 
 			before(function (done) {
-				browser = new Browser();
+				browser = new Browser({ runScripts : false });
 
 				log = Sinon.stub(browser.pack, "log");
 
@@ -395,7 +394,7 @@ describe("The Lurker login page", function () {
 			var orgRequest;
 
 			before(function (done) {
-				browser = new Browser();
+				browser = new Browser({ runScripts : false });
 
 				log = Sinon.stub(browser.pack, "log");
 
