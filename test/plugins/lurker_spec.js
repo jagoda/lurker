@@ -306,6 +306,9 @@ describe("The Lurker login page", function () {
 		var TOKEN    = "atoken";
 		var USERNAME = "testy";
 
+		var AUTHORIZATION = "Basic " + (new Buffer(TOKEN + ":x-oauth-basic"))
+			.toString("base64");
+
 		var CREDENTIALS = {
 			profile : {
 				username : USERNAME
@@ -334,7 +337,7 @@ describe("The Lurker login page", function () {
 
 		function getOrg () {
 			return new Nock("https://api.github.com")
-			.matchHeader("Authorization", "Bearer " + TOKEN)
+			.matchHeader("Authorization", AUTHORIZATION)
 			.get(orgPath);
 		}
 
